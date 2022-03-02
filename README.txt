@@ -25,6 +25,7 @@ Site Elements:
 		Bottom bar:
 			Button to show list of selectable sessions
 			Timeline with frame ticks, see start through end with a movable header 
+			Play/pause/go to end/go to beginning button
 		Invisible:
 			Split classroom into sections, track aggragated data per section and display on hover (per lecture or for all)
 				Instructor spends x% time here
