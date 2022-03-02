@@ -39,6 +39,7 @@ Site Elements:
 		etc...
 
 		Line Chart: Distance between points, plotted for each instructor
+		Chart: Velocity over time
 		etc... 
 
 -Animation Script
