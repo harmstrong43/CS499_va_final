@@ -4,6 +4,9 @@ Hannah Armstrong
 Dan Hickey
 Brian Cebra
 
+DO NOT forget to run "npm install" command before attempting to launch to localhost/8080
+(commands: "npm run build", "npm run start". ctrl + c, "y" to exit the launch)
+
 TODO:
 
 -Import and clean data into arrays/objects
