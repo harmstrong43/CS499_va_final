@@ -27,6 +27,8 @@ Site Elements:
 			Go to Time = 0 button
 			Start Animation button
 			Go to Time = last button
+		Invisible:
+			Split classroom into sections, track aggragated data per section and display on hover (per lecture or for all)
 
 -Box that contains summary and line charts (on the right)
 	Elements:
