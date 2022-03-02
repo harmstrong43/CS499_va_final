@@ -7,8 +7,8 @@ Brian Cebra
 TODO:
 
 -Import and clean data into arrays/objects
-	
--Skeleton code for a blank HTML site with a container for the visualizations (moving to a published website will be LAST)
+
+-Create HTML / Svelte app using HW3 as a base
 
 
 Site Elements:
