@@ -24,9 +24,7 @@ Site Elements:
 			(DEBUG USE:) Frame #
 		Bottom bar:
 			Button to show list of selectable sessions
-			Go to Time = 0 button
-			Start Animation button
-			Go to Time = last button
+			Timeline with frame ticks, see start through end with a movable header 
 		Invisible:
 			Split classroom into sections, track aggragated data per section and display on hover (per lecture or for all)
 				Instructor spends x% time here
@@ -39,6 +37,7 @@ Site Elements:
 		etc...
 
 		Line Chart: Distance between points, plotted for each instructor
+		Chart: Total distance traveled (Maybe updates with the animation)
 		Chart: Velocity over time
 		etc... 
 
