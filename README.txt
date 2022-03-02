@@ -34,9 +34,10 @@ Site Elements:
 	Elements:
 		Statistic 1
 		Statistic 2
+		etc...
 
-		Line Chart 1
-		Line Chart 2
+		Line Chart: Distance between points, plotted for each instructor
+		etc... 
 
 -Animation Script
 	Play -> every x seconds / frames update
