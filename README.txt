@@ -18,7 +18,6 @@ Site Elements:
 		Instructor location, shown by an icon, shows movement type
 		Background - Shapes representing the classroom's position, text showing specific object locations
 		Top bar (Left to Right): 
-			Engagement icon
 			Activity icon
 			Text showing classroom type
 			Instructor ID
@@ -41,7 +40,6 @@ Site Elements:
 	Play -> every x seconds / frames update
 			Instructor position
 			Instructor movement type
-			Engagement
 			Current Activity
 	Add new circle for instructor position, make last circle lower opacity to start generating the heatmap
 		
