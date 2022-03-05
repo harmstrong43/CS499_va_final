@@ -11,7 +11,11 @@ TODO:
 
 -Import and clean data into arrays/objects
 
--Create HTML / Svelte app using HW3 as a base
+ASSIGNED:
+
+-Hannah: Base site divs
+-Dan: Graph image data
+-Brian: Data Import
 
 
 Site Elements:
