@@ -6,34 +6,55 @@
 	import { onMount } from "svelte";
 	import { scaleLinear } from "d3-scale";
 
-	let instances;
+	let lectures = [];
 
-	const numClasses = 10;
-	const numBins = 10;
-	let binsByClasses = [];
+	const filenames = [
+		"static/instructorA.json",
+		"static/instructorB_1.json",
+		"static/instructorB_2.json",
+		"static/instructorB_3.json",
+		"static/COPUS_instructorA.json",
+		"static/COPUS_instructorA.json"
+	]
+
+	//checks to see if filename starts with COPUS
+	function getCopus(filename) {
+		if (filename.split("/")[1].split("_")[0] == "COPUS"){
+			return true
+		}
+		return false
+	}
+
+	//Gets the name of the instructor from filename. This is currently a very manual process
+	function getInstructorName(filename) {
+		if (filename.includes("instructorA"))
+			return "a"
+		else if (filename.includes("instructorB")) 
+			return "b"
+		return null
+	}
 
 	onMount(async () => {
-		const fetched = await fetch("static/prediction_results.json");
-		instances = (await fetched.json()).test_instances;
-		console.log(instances);
 
-		// Transform data
-		for (let k = 0; k < numClasses; ++k) {
-			let binsForClass = [];
-			for (let b = 0; b < numBins; ++b) {
-				binsForClass.push({"class": k, "binNo": b, "instances": []});
-			}
-			binsByClasses.push({"class": k, "bins": binsForClass});
-		}
-		console.log(binsByClasses);
+		//Loop through all the data files stored in filenames global variable and load them
+		for(let i = 0; i < filenames.length; i++) {
+			let fetched = await fetch(filenames[i])
+			let fetched_json = await fetched.json();
 
-		instances.forEach(instance => {
+			//is COPUS in title? TODO: Make sure this is actually something we care about
+			let is_copus = getCopus(filenames[i]);
+
+			//Get name of instructor. TODO: Do we want to change this to numbers?
+			let instructor_name = getInstructorName(filenames[i]);
 			
-
-		});
-
-		
-
+			//add new lecture object to the array with the data from the filename
+			lectures.push({
+				instructor_name: instructor_name,
+				copus: is_copus,
+				data: fetched_json
+			})
+		};
+		console.log("Lectures: ", lectures)
 	});
 
 	

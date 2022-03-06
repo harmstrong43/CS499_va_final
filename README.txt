@@ -15,7 +15,7 @@ ASSIGNED:
 
 -Hannah: Base site divs
 -Dan: Graph image data
--Brian: Data Import
+-Brian: Data Import, Graph sections of classroom data
 
 
 Site Elements:
