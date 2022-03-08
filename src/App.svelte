@@ -14,16 +14,28 @@
 	let lectureSelectVal;
 	let selectedLectureNum;
 
-	let sliceXScale
 	let sliceYScale
-
-	let sliceXScaleTicks
 	let sliceYScaleTicks = []
+
+	let heatmapXScale
+	let heatmapYScale
+
+	let timelineXScale
+	let timelineYScale
+
+	let heatmapStartingPoint = {
+		x: 1000,
+		y: 400
+	};
+
 
 	let percentDistance;
 
 	const sliceBarChartHeight = 300
 	const sliceBarWidth = 40
+
+	const heatmapWidth = 300
+	const heatmapHeight = 200
 
 	const filenames = [
 		"static/instructorA.json",
@@ -78,7 +90,16 @@
 			.range([0,sliceBarChartHeight])
 
 		sliceYScaleTicks = sliceYScale.ticks(10)
-		console.log(sliceYScaleTicks)
+
+		heatmapXScale = scaleLinear()
+			.domain([heatmapStartingPoint.x - 1500, heatmapStartingPoint.x + 1500])
+			//.domain([-1000,2000])
+			.range([0,heatmapWidth])
+		
+		heatmapYScale = scaleLinear()
+			.domain([0,800])
+			//.domain([heatmapStartingPoint.y-1000,heatmapStartingPoint.y + 1000])
+			.range([0,heatmapHeight])
 	});
 
 	function filterSelectedData(xmin, xmax, ymin, ymax) {
@@ -91,16 +112,18 @@
 		getTotalDistance()
 	}
 
-	function getStartingPoint(){
-		return ({
+	function setStartingPoint(){
+		heatmapStartingPoint = {
 			x: lectures[selectedLectureNum].data[0]["x [pixel]"],
 			y: lectures[selectedLectureNum].data[0]["y [pixel]"]
-		})
+		}
+		console.log(heatmapStartingPoint)
+		return heatmapStartingPoint;
 	}
 
 	function getSelectedData(){
 		console.log("Selected lecture:", selectedLectureNum, "Selected section:", selectedSection)
-		let starting_point = getStartingPoint()
+		let starting_point = setStartingPoint()
 		//console.log("Starting Point:", starting_point)
 		if (selectedSection =="Q1")
 			filterSelectedData(starting_point.x, Infinity, starting_point.y, Infinity)
@@ -198,34 +221,155 @@
 					</g>
 				</g>
 			</svg>
-		</div>
+		</div>-
 
-			<!--
+		<div id="heatmap">
+			<h4>Heatmap</h4>
+			<svg style="height: {heatmapWidth}; width:{heatmapWidth};">
+				<rect
+					height="{heatmapHeight}"
+					width="{heatmapWidth}"
+					x="0"
+					y="0"
+					fill="transparent"
+					stroke="black"
+					stroke-width="1" />
+				<g id="classroom-section-selectors-box">
+					<rect
+						class="classroom-section-selector"
+						height="{heatmapHeight / 2}"
+						width="{heatmapWidth / 2}"
+						x="{heatmapWidth / 2}"
+						y="0"
+						fill="{selectedSection !== null && selectedSection === "Q1" ? "#CDCDCD" : "transparent"}"
+						on:click="{() => {
+							selectedSection = "Q1";
+							getSelectedData()
+						}}" />
 
-		<div id="heatmap" style="height: 100vh; width:100vw;">
-			<svg style="height: 100%; width: 100%;">
+					<rect
+						class="classroom-section-selector"
+						height="{heatmapWidth / 3}"
+						width="{heatmapWidth / 2}"
+						x="{heatmapWidth / 2}"
+						y="{heatmapHeight / 2}"
+						fill="{selectedSection !== null && selectedSection === "Q2" ? "#CDCDCD" : "transparent"}"
+						on:click="{() => {
+							selectedSection = "Q2";
+							getSelectedData()
+						}}" />
+
+					<rect
+						class="classroom-section-selector"
+						height="{heatmapWidth / 3}"
+						width="{heatmapWidth / 2}"
+						x="0"
+						y="{heatmapHeight / 2}"
+						fill="{selectedSection !== null && selectedSection === "Q3" ? "#CDCDCD" : "transparent"}"
+						on:click="{() => {
+							selectedSection = "Q3";
+							getSelectedData()
+						}}" />
+
+					<rect
+						class="classroom-section-selector"
+						height="{heatmapWidth / 3}"
+						width="{heatmapWidth / 2}"
+						x="0"
+						y="0"
+						fill="{selectedSection !== null && selectedSection === "Q4" ? "#CDCDCD" : "transparent"}"
+						on:click="{() => {
+							selectedSection = "Q4";
+							getSelectedData()
+						}}" />
+				</g>
+				<g id="heatmap-scatterplot">
+					{#if lectures !== undefined && selectedLectureNum !== undefined && lectures[selectedLectureNum] !== undefined}
+						{#each lectures[selectedLectureNum].data as datapoint}
+							<circle
+								id="heatmap-datapoint-{datapoint["Nr"]}"
+								cx={heatmapXScale(datapoint["x [pixel]"])}
+								cy={heatmapYScale(datapoint["y [pixel]"])}
+								r=1
+								fill="blue"
+							/>
+						{/each}
+					{/if}
+				</g>
+<!--
+				<g id="lecture-timeline">
+					{#if lectures !== undefined && selectedLectureNum !== undefined && lectures[selectedLectureNum] !== undefined}
+						{#each selectedData as datapoint}
+
+						{/each}
+					{/if}
+				</g>
+
+				-->
+				<!--
+				
 				<circle 
 					id="classroom-outline"
-					cx="300"
-					cy="300"
-					r="200"
+					cx="{heatmapWidth / 2}"
+					cy="{heatmapWidth / 2}"
+					r="{heatmapWidth / 2}"
 					stroke="black"
 					stroke-width="10"
 					style="fill:none;"
 					
 				/>
 				<circle
-					r="100"
-					cx="300"
-					cy="300"
+					r="{heatmapWidth / 4}"
+					cx="{heatmapWidth / 2}"
+					cy="{heatmapWidth / 2}"
 					fill="transparent"
 					stroke="tomato"
-					stroke-width="200"
-					stroke-dasharray="150 3"
+					stroke-width="{heatmapWidth / 2}"
+					stroke-dasharray="{heatmapWidth / 2.6} 4"
 				/>
+
+				-->
 			</svg>
 		</div>
--->
+
+		<div>
+			<h4>Breakdown Per Quarter of Lecture</h4>
+			<svg style="height: {sliceBarChartHeight + 60}; padding: 20px">
+				<g id="per-quarter-bar-chart" transform="translate(10,10)"></g>
+					<g class="chart-axes">
+						<line y1="0" y2="{sliceBarChartHeight}" stroke="black" stroke-width="1"/>
+
+						{#each sliceYScaleTicks as tick}
+							<g transform="translate(0, {sliceYScale(tick)})">
+								<line x1="0" x2="5" stroke="black" stroke-width="0.5" />
+								<text x="10" y="6">{tick}</text>
+							</g>
+						
+						{/each}
+					</g>
+
+					<g id="per-quarter-bar-chart-bars" transform="translate(40,0)">
+						{#each [0,1,2,3] as idx}
+							{#if selectedData && lectures}
+								<rect 
+									x="{(sliceBarWidth + 20) * idx}"
+									y="{sliceYScale(selectedData.filter((e) => {
+										return ((e["Nr"] > idx * lectures[selectedLectureNum].data.length / 4) && (e["Nr"] <= (idx+1) * lectures[selectedLectureNum].data.length / 4))
+									}).length / selectedData.length)}"
+									height="{sliceBarChartHeight - sliceYScale(selectedData.filter((e) => {
+										return ((e["Nr"] > idx * lectures[selectedLectureNum].data.length / 4) && (e["Nr"] <= (idx+1) * lectures[selectedLectureNum].data.length / 4))
+									}).length / selectedData.length)}"
+									width="{sliceBarWidth}"
+									style="fill:black;"
+								/>	
+							{/if}
+							<text x="{(sliceBarWidth + 20) * idx}" y="{sliceBarChartHeight + 20}">Quar. {idx + 1}</text>
+						
+						{/each}
+					</g>
+			</svg>
+
+		</div>
 	</div>
 </main>
 
@@ -242,6 +386,11 @@
 	#slice-view {
 		display: flex;
 		flex-direction: column;
+	}
+
+	.classroom-section-selector:hover {
+		cursor: pointer;
+		fill: lightgray;
 	}
 
 	.chart-axes {
