@@ -23,7 +23,7 @@
 </script>
 
 <div>
-    <h4>Breakdown Per Quarter of Lecture</h4>           
+    <h4 style="margin:0;">Breakdown Per Quarter of Lecture</h4>           
     <svg style="height: {sliceBarChartHeight + 60}; padding: 20px">
         <g id="per-quarter-bar-chart" transform="translate(0,10)">
            <g class="chart-axes">
