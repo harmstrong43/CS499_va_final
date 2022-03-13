@@ -42,7 +42,7 @@
     });
 </script>
 
-<div style="height:80%;" bind:clientWidth={heatmapWidth} bind:clientHeight={heatmapHeight}>
+<div style="height:100%;" bind:clientWidth={heatmapWidth} bind:clientHeight={heatmapHeight}>
 	<svg style="height:{heatmapHeight}; width:{heatmapWidth};">
 		<g id="heatmap-scatterplot">
 			{#if lectures !== undefined && selectedLectureNumbers!== undefined}
@@ -154,6 +154,7 @@
 <style>
 	.classroom-section-selector {
 		opacity: 40%;
+		z-index:1;
 	}
 	.classroom-section-selector:hover {
 		cursor: pointer;
