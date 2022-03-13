@@ -48,9 +48,9 @@
 	//Gets the name of the instructor from filename. This is currently a very manual process
 	function getInstructorName(filename) {
 		if (filename.includes("instructorA"))
-			return "a"
+			return "A"
 		else if (filename.includes("instructorB")) 
-			return "b"
+			return "B"
 		return null
 	}
 
@@ -145,75 +145,92 @@
 <main>
 	<h1>Visual Analytics Final Project</h1>
 	<h2>Instructor Movement Data Visualization</h2>
-	<h4 id="lecture-select-title">Select an Instructor</h4>
-	{#if selectedLectureNumbers !== undefined && filenames !== undefined && lectures !== undefined} 
-		<div class="select-options"> 
-			{#each instructors as instructor}
-				
-				<label>
-					<input type="checkbox" value={instructor}
-						bind:group={selectedInstructors}
-						on:change="{() => instructorClick()}">
-						{instructor}
-				</label>
-			{/each}
-		</div>
-	{/if}
+	
 
-	<h4 id="lecture-select-title">Select a Lecture</h4>
-	{#if selectedLectureNumbers !== undefined && filenames !== undefined && lectures !== undefined} 
-		<div class="select-options"> 
-			{#each filenames as filename, idx}
-				{#if lectures[idx].copus === false && selectedInstructors.includes(lectures[idx].instructor_name)}
-					<label>
-						<input type="checkbox" value={idx}
-							bind:group={selectedLectureNumbers}
-							on:change="{() => getSelectedData()}">
-							{filename.split("/")[1]}
-					</label>
-				{/if}
-			{/each}
-		</div>
-	{/if}
+	
 
 <div id="container">
 		<div id="video-view" class="view-panel">
+
 			<div class="view-title">Instructor Path Player</div>
 
 			<div class="view-anim">
 				<div id="instructor-select">
-					<p id="instructor-select-title">Selected Instructor:</p>
+					<p id="instructor-select-title">Instructors
+						<i class="fas fa-angle-down"id="i-dropdown"></i>
+					</p>
 					<p id="instructor-select-id">{selectedInstructors}</p>
+					<div class="dropdown">
+						<div class="dropdown-content" id="dropdown-content-instructor">
+							{#if selectedLectureNumbers !== undefined && filenames !== undefined && lectures !== undefined} 
+								<div class="select-options"> 
+									{#each instructors as instructor}
+										
+										<label>
+											<input type="checkbox" value={instructor}
+												bind:group={selectedInstructors}
+												on:change="{() => instructorClick()}">
+												{instructor}
+										</label>
+									{/each}
+								</div>
+							{/if}
+						</div>
+					</div>
 				</div>
 				<div id="instructor-activity">
 					<p id="instructor-activity-word">LECTURING</p>
 				</div>
+					<Heatmap 
+					lectures={lectures}
+					bind:selectedSection={selectedSection}
+					bind:selectedLectureNumbers={selectedLectureNumbers}
+					getSelectedData={getSelectedData}
+					heatmapRange={dataRange} />
 			</div>
 
-			<Heatmap 
-				lectures={lectures}
-				bind:selectedSection={selectedSection}
-				bind:selectedLectureNumbers={selectedLectureNumbers}
-				getSelectedData={getSelectedData}
-				heatmapRange={dataRange} />
+			
 
 			<div class="view-underbar">
+				<div id="lecture-select-button">
+					<p id="lecture-select-title">Lectures</p>
+					<i class="fas fa-angle-down"id="i-dropdown"></i>
+					<div class="dropdown">
+						<div class="dropdown-content">
+							<!--<h4 id="lecture-select-title">Select a Lecture</h4>-->
+							{#if selectedLectureNumbers !== undefined && filenames !== undefined && lectures !== undefined} 
+								<div class="select-options"> 
+									{#each filenames as filename, idx}
+										{#if lectures[idx].copus === false && selectedInstructors.includes(lectures[idx].instructor_name)}
+											<label>
+												<input type="checkbox" value={idx}
+													bind:group={selectedLectureNumbers}
+													on:change="{() => getSelectedData()}">
+													{filename.split("/")[1]}
+											</label>
+										{/if}
+									{/each}
+								</div>
+							{/if}
+						</div>
+					</div>
+				</div>
 				<div class="view-icons">
-					<i class="fas fa-fast-backward"id="i-back"></i>
-					<i class="fas fa-step-backward"id="i-backstep"></i>
-					<i class="fas fa-play"id="i-play"></i>
-					<i class="fas fa-step-forward"id="i-forwardstep"></i>
-					<i class="fas fa-fast-forward"id="i-forward"></i>
+					<i class="fas fa-fast-backward fas2"id="i-back"></i>
+					<i class="fas fa-step-backward fas2"id="i-backstep"></i>
+					<i class="fas fa-play fas2"id="i-play"></i>
+					<i class="fas fa-step-forward fas2"id="i-forwardstep"></i>
+					<i class="fas fa-fast-forward fas2"id="i-forward"></i>
 				</div>
 			</div>
 		</div>
 		<div id="chart-view" class="view-panel">
 			<div class="view-title">Instructor Statistics</div>
 			<div id="view-list">
-				<p id="stat0">Instructor X spent the most time at location: LOC</p>
+				<!--<p id="stat0">Instructor X spent the most time at location: LOC</p>
 				<p id="stat1">Instructor X spent the most time doing this activity: ACT</p>
 				<p id="stat2">Instructor X traveled this maximum distance away from the original location: DIST</p>
-				<!--<p id="stat3">Continues...</p>-->
+				<p id="stat3">Continues...</p>-->
 				<h4 id="slice-select-title">Select a Quarter of Room</h4>
 				<select bind:value={selectedSection} on:change="{() => getSelectedData()}">
 					<option value="N/A"></option>
@@ -247,7 +264,7 @@
 
 	TITLE BKG (gray-purple): #B6B3BD;
 	BUTTON BKG (gray-green): #B5BDB3;
-	BUTTON NKG 2 (gray-blue): #A9B3C6;
+	BUTTON BKG 2 (gray-blue): #A9B3C6;
 
 	LIGHT BORDER: #D4D3D9;
 	DARK BORDER: #615f6d;
@@ -261,7 +278,7 @@
 		background-color: #EAE9EC;
 	}
 	h1 {
-		font-size: 2rem;
+		font-size: 35px;
 		font-weight: 500;
 		margin-top: 0;
 		width:100%;
@@ -270,7 +287,7 @@
 	}
 	h2
 	{
-		font-size: 1.2rem;
+		font-size: 30px;
 		font-weight: 500;
 		width:100%;
 		text-align: center;
@@ -283,6 +300,7 @@
 	#container {
 		display: flex;
 		width:auto;
+		justify-content:center;
 	}
 	.view-panel {
 		border: 2px solid #D4D3D9;
@@ -292,7 +310,7 @@
 	}
 	.view-title {
 		background-color: #B6B3BD;
-		font-size: 1.2rem;
+		font-size: 25px;
 		margin-bottom: 8px;
 		padding: 3px 8px 5px 12px;
 	}
@@ -300,27 +318,68 @@
 	{
 		position:relative;
 		padding:5px;
+		height:300px;
 	}
 	#video-view
 	{
-		width:70%;
+		width:710px;
+		height:440px;
 	}
 
+/*
+	VIDEO VIEW LECTURE SELECTOR + BUTTON	
+*/
+	#lecture-select-button
+	{
+		background-color: #a9b3c6;
+		border: 2px solid #D4D3D9;
+		border-radius: 15px;
+		position: absolute;
+		left: 5px;
+		bottom: 3px;
+		padding: 5px;
+		display: flex;
+	}
+	#lecture-select-button:hover .dropdown .dropdown-content  {display: block;}
+
+	#lecture-select-button p
+	{
+		text-align: center;
+		font-weight: 500;
+		font-size: 15px;
+	}
+	#i-dropdown
+	{
+		padding: 3px;
+		padding-top:5px;
+    	margin: auto;
+	}
 /*
 	VIDEO VIEW SELECTED INSTRUCTOR
 */
 	#instructor-select
 	{
-		background-color:#B5BDB3;
+		background-color:#A9B3C6;
 		border: 2px solid #D4D3D9;
 		border-radius: 15px;
 		width:140px;
 		height:70px;
 		position:absolute;
-		margin:0;
+		margin:5px;
 		right:20px;
 		padding-top:5px;
+		z-index:2;
 	}
+	#instructor-select:hover .dropdown .dropdown-content  {display: block;}
+
+	#dropdown-content-instructor
+	{
+		position: absolute;
+		top: -10px;
+		left: -5px;
+		width: 20px;
+	}
+
 	#instructor-select-title
 	{
 		margin:0;
@@ -347,16 +406,18 @@
 */
 	#instructor-activity
 	{
-		background-color:#a9b3c6;
+		background-color: #B5BDB3;
 		border: 2px solid #D4D3D9;
 		border-radius: 15px;
-		width:100px;
-		height:70px;
-		position:absolute;
-		margin:0;
-		right:180px;
-		padding-top:0;
-		display:flex;
+		width: 100px;
+		height: 70px;
+		position: absolute;
+		margin: 5px;
+		right: 180px;
+		padding-top: 2.5px;
+		display: flex;
+		padding-bottom: 2.5px;
+		z-index:2;
 	}
 	#instructor-activity-word
 	{
@@ -393,9 +454,10 @@
 */
 	#chart-view
 	{
-		width:50%;
+		width:600px;
+		height:600px;
 	}
-	.fas
+	.fas2
 	{
 		font-size:50px;
 		margin-top:5px;
@@ -420,21 +482,34 @@
 	LECTURE SELECT OPTIONS
 */
 
+	.dropdown
+	{
+		position: relative;
+  		display: inline-block;
+	}
+
+	.dropdown-content 
+	{
+		display: none;
+		position: absolute;
+		left: -80px;
+		top: 55px;
+		background-color: #A9B3C6;
+		min-width: 160px;
+		box-shadow: 0px 8px 16px 0px rgb(0 0 0 / 20%);
+		z-index: 1;
+		border: 2px solid #D4D3D9;
+		border-radius: 15px;
+		padding:5px;
+	}
+
+	.dropdown:hover .dropdown-content {display: block;}
 
 	.select-options {
 		display: flex;
-		font-size: 1.5em;
-
+		font-size: 15px;
+		flex-direction: column;
 	}
-
-	.select-options input {
-		height: 25px;
-		width: 25px;
-		margin-left: 35px;
-		cursor: pointer;
-		vertical-align: middle;
-	}
-
 
 
 </style>
