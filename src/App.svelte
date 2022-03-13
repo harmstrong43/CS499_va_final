@@ -12,18 +12,16 @@
 
 	import Heatmap from "./components/Heatmap.svelte"
 	import PerQuarterBarChart from "./components/PerQuarterBarChart.svelte"
-	import SliceBarCharts from "./components/SliceBarCharts.svelte"
+	//import SliceBarCharts from "./components/SliceBarCharts.svelte"
 	
 	let lectures = [];
+	let instructors =  new Set()
 	
 	let selectedData;
 	let selectedSection;
 	
-	let lectureSelectVal;
 	let selectedLectureNumbers;
-
-	let timelineXScale
-	let timelineYScale
+	let selectedInstructors;
 
 	const dataRange = {
 		x: [0,1919],
@@ -75,27 +73,37 @@
 				copus: is_copus,
 				data: fetched_json
 			})
+
+			instructors.add(instructor_name);
 		};
+		instructors = Array.from(instructors)
 		console.log("Lectures: ", lectures)
 
 		
 
-		//start out with all data selected
+		//start out with all instructors and lectures selected
 		selectedData = []
+		selectedInstructors = instructors
 		selectedLectureNumbers=[0,1,2,3]
-		lectures.forEach((lecture) => selectedData.push(lecture.data))
 		
 	});
 
+	//return subset of lectures that only contains points within coordinate bounds
 	function filterSelectedData(xmin, xmax, ymin, ymax) {
 		let data = []
 		selectedLectureNumbers.forEach((num) => {
-			data.push(...lectures[num].data.filter((e) => {
-				return e["x [pixel]"] > xmin 
-					&&  e["x [pixel]"] < xmax 
-					&& e["y [pixel]"] > ymin 
-					&& e["y [pixel]"] < ymax
-			}))
+			if (selectedInstructors.includes(lectures[num].instructor_name)) {
+				data.push({
+					instructor_name: lectures[num].instructor_name,
+					lecture_num: num,
+					data: [...lectures[num].data.filter((e) => {
+					return e["x [pixel]"] > xmin 
+						&&  e["x [pixel]"] < xmax 
+						&& e["y [pixel]"] > ymin 
+						&& e["y [pixel]"] < ymax
+					})]
+				})
+			}
 		})		
 		return data
 		//getTotalDistance()
@@ -108,6 +116,7 @@
 		}
 	}
 
+	//When data is filtered (i.e. quadrant, lecture, or instructor checked or unchecked)
 	function getSelectedData(){
 		//console.log("Selected lecture:", selectedLectureNumbers, "Selected section:", selectedSection)
 		let starting_point = setStartingPoint()
@@ -123,33 +132,48 @@
 			selectedData.push(...filterSelectedData(Number.NEGATIVE_INFINITY, starting_point.x, Number.NEGATIVE_INFINITY, starting_point.y))
 		if (selectedSection == "Q4")
 			selectedData.push(...filterSelectedData(Number.NEGATIVE_INFINITY, starting_point.x, starting_point.y, Infinity))
-		
-		//console.log(selectedData)		
+	}
+
+
+	function instructorClick() {
+		//remove lectures that are taught by unselected instructors
+		selectedLectureNumbers = lectures.reduce((arr, e, i) => (selectedInstructors.includes(e.instructor_name) && e.copus === false && arr.push(i), arr), [])
+		getSelectedData()
 	}
 </script>	
 
 <main>
 	<h1>Visual Analytics Final Project</h1>
 	<h2>Instructor Movement Data Visualization</h2>
-	<select bind:value={selectedSection} on:change="{() => getSelectedData()}">
-		<option value="N/A"></option>
-		<option value="Q1">Q1</option>
-		<option value="Q2">Q2</option>
-		<option value="Q3">Q3</option>
-		<option value="Q4">Q4</option>
-	</select>
+	<h4 id="lecture-select-title">Select an Instructor</h4>
+	{#if selectedLectureNumbers !== undefined && filenames !== undefined && lectures !== undefined} 
+		<div class="select-options"> 
+			{#each instructors as instructor}
+				
+				<label>
+					<input type="checkbox" value={instructor}
+						bind:group={selectedInstructors}
+						on:change="{() => instructorClick()}">
+						{instructor}
+				</label>
+			{/each}
+		</div>
+	{/if}
+
 	<h4 id="lecture-select-title">Select a Lecture</h4>
 	{#if selectedLectureNumbers !== undefined && filenames !== undefined && lectures !== undefined} 
-		{#each filenames as filename, idx}
-			{#if lectures[idx].copus === false}
-				<label>
-					<input type="checkbox" value={idx}
-						bind:group={selectedLectureNumbers}
-						on:change="{() => getSelectedData()}">
-						{filename.split("/")[1]}
-				</label>
-			{/if}
-		{/each}
+		<div class="select-options"> 
+			{#each filenames as filename, idx}
+				{#if lectures[idx].copus === false && selectedInstructors.includes(lectures[idx].instructor_name)}
+					<label>
+						<input type="checkbox" value={idx}
+							bind:group={selectedLectureNumbers}
+							on:change="{() => getSelectedData()}">
+							{filename.split("/")[1]}
+					</label>
+				{/if}
+			{/each}
+		</div>
 	{/if}
 
 <div id="container">
@@ -159,7 +183,7 @@
 			<div class="view-anim">
 				<div id="instructor-select">
 					<p id="instructor-select-title">Selected Instructor:</p>
-					<p id="instructor-select-id">A</p>
+					<p id="instructor-select-id">{selectedInstructors}</p>
 				</div>
 				<div id="instructor-activity">
 					<p id="instructor-activity-word">LECTURING</p>
@@ -190,11 +214,18 @@
 				<p id="stat1">Instructor X spent the most time doing this activity: ACT</p>
 				<p id="stat2">Instructor X traveled this maximum distance away from the original location: DIST</p>
 				<!--<p id="stat3">Continues...</p>-->
+				<h4 id="slice-select-title">Select a Quarter of Room</h4>
+				<select bind:value={selectedSection} on:change="{() => getSelectedData()}">
+					<option value="N/A"></option>
+					<option value="Q1">Q1</option>
+					<option value="Q2">Q2</option>
+					<option value="Q3">Q3</option>
+					<option value="Q4">Q4</option>
+				</select>
 
 				<PerQuarterBarChart
 					lectures={lectures}
-					selectedData={selectedData}
-					selectedLectureNumbers={selectedLectureNumbers} />
+					selectedData={selectedData} />
 
 			</div>
 		</div>
@@ -383,6 +414,25 @@
 		margin:15px;
 		text-align: left;
 		display:block;
+	}
+
+/*
+	LECTURE SELECT OPTIONS
+*/
+
+
+	.select-options {
+		display: flex;
+		font-size: 1.5em;
+
+	}
+
+	.select-options input {
+		height: 25px;
+		width: 25px;
+		margin-left: 35px;
+		cursor: pointer;
+		vertical-align: middle;
 	}
 
 
