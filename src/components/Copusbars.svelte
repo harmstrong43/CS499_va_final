@@ -101,7 +101,7 @@ import { afterUpdate } from "svelte";
                 <g id = "bars" transform = "translate({(index + 2) * barPadding}, {(chartHeight - 2 * yAxisPadding)})">
                     <rect
                         bind:this = {bars.lecture[index]}
-                        x = 0 y= {selectedLectureNumbers.includes(index) ? -1 * percentTimeScale(lectureActivityArr[selectedLectureNumbers.indexOf(index)]) : 0}
+                        x = 0 y= {selectedLectureNumbers.includes(index) && lectureActivityArr.length > 0 ? -1 * percentTimeScale(lectureActivityArr[selectedLectureNumbers.indexOf(index)]) : 0}
                         height = {selectedLectureNumbers.includes(index) ? percentTimeScale(lectureActivityArr[selectedLectureNumbers.indexOf(index)]) : 0}
                         width = {barWidth}
                         style = "{selectedLectureNumbers.includes(index) ? "fill: " + colorScale(index) : "display: none"}"
@@ -114,10 +114,9 @@ import { afterUpdate } from "svelte";
                             currentIndex = index;
                         }} 
                     />
-
                     <rect 
                         bind:this = {bars.asking[index]}
-                        x = {barSections * 1} y= {selectedLectureNumbers.includes(index) ? -1 * percentTimeScale(questionAskingActivityArr[selectedLectureNumbers.indexOf(index)]) : 0}
+                        x = {barSections * 1} y= {selectedLectureNumbers.includes(index) && questionAskingActivityArr.length > 0 ? -1 * percentTimeScale(questionAskingActivityArr[selectedLectureNumbers.indexOf(index)]) : 0}
                         height = {selectedLectureNumbers.includes(index) ? percentTimeScale(questionAskingActivityArr[selectedLectureNumbers.indexOf(index)]) : 0}
                         width = {barWidth}
                         style = "{selectedLectureNumbers.includes(index) ? "fill: " + colorScale(index) : "display: none"}"
@@ -130,10 +129,9 @@ import { afterUpdate } from "svelte";
                             currentIndex = index;
                         }}
                     />
-
                     <rect 
                         bind:this = {bars.answering[index]}
-                        x = {barSections * 2} y= {selectedLectureNumbers.includes(index) ? -1 * percentTimeScale(questionAnsweringActivityArr[selectedLectureNumbers.indexOf(index)]) : 0}
+                        x = {barSections * 2} y= {selectedLectureNumbers.includes(index) && questionAnsweringActivityArr.length > 0 ? -1 * percentTimeScale(questionAnsweringActivityArr[selectedLectureNumbers.indexOf(index)]) : 0}
                         height = {selectedLectureNumbers.includes(index) ? percentTimeScale(questionAnsweringActivityArr[selectedLectureNumbers.indexOf(index)]) : 0}
                         width = {barWidth}
                         style = "{selectedLectureNumbers.includes(index) ? "fill: " + colorScale(index) : "display: none"}"
@@ -146,10 +144,9 @@ import { afterUpdate } from "svelte";
                             currentIndex = index;
                         }}
                     />
-
                     <rect 
                         bind:this = {bars.other[index]}
-                        x = {barSections * 3} y= {selectedLectureNumbers.includes(index) ? -1 * percentTimeScale(otherActivityArr[selectedLectureNumbers.indexOf(index)]) : 0}
+                        x = {barSections * 3} y= {selectedLectureNumbers.includes(index) && otherActivityArr.length > 0 ? -1 * percentTimeScale(otherActivityArr[selectedLectureNumbers.indexOf(index)]) : 0}
                         height = {selectedLectureNumbers.includes(index) ? percentTimeScale(otherActivityArr[selectedLectureNumbers.indexOf(index)]) : 0}
                         width = {barWidth}
                         style = "{selectedLectureNumbers.includes(index) ? "fill: " + colorScale(index) : "display: none"}"
@@ -166,45 +163,53 @@ import { afterUpdate } from "svelte";
             {/each}
             <g id = "average-lines" transform = "translate({2 * barPadding}, {(chartHeight - 2 * yAxisPadding)})">
 
-                <rect class = "average-padding"
-                    x = "0" y = "{-1 * percentTimeScale(lectureActivityArr.slice(-1)[0]) - 2}"
-                    width = "{4 * (barPadding) - 3}" height = 4
-                />
+                
+                {#if lectureActivityArr.length > 0}
+                    <rect class = "average-padding"
+                        x = "0" y = "{-1 * percentTimeScale(lectureActivityArr.slice(-1)[0]) - 2}"
+                        width = "{4 * (barPadding) - 3}" height = 4
+                    />
+                {/if}
 
-                <line class = "averages"
-                    x1 = "0" x2 = "{4 * (barPadding) - 3}"
-                    y1= "{-1 * percentTimeScale(lectureActivityArr.slice(-1)[0])}" y2 = "{-1 * percentTimeScale(lectureActivityArr.slice(-1)[0])}"
-                />
+                {#if lectureActivityArr.length > 0}
+                    <line class = "averages"
+                        x1 = "0" x2 = "{4 * (barPadding) - 3}"
+                        y1= "{-1 * percentTimeScale(lectureActivityArr.slice(-1)[0])}" y2 = "{-1 * percentTimeScale(lectureActivityArr.slice(-1)[0])}"
+                    />
+                {/if}
 
-                <rect class = "average-padding"
-                    x = "{barSections * 1}" y = "{-1 * percentTimeScale(questionAskingActivityArr.slice(-1)[0]) - 2}"
-                    width = "{4 * (barPadding) - 3}" height = 4
-                />
-
-                <line class = "averages"
-                    x1 = "{barSections * 1}" x2 = {(4 * barPadding) + (barSections * 1) - 3}
-                    y1 = {-1 * percentTimeScale(questionAskingActivityArr.slice(-1)[0])} y2 = {-1 * percentTimeScale(questionAskingActivityArr.slice(-1)[0])}
-                />
-
-                <rect class = "average-padding"
-                    x = "{barSections * 2}" y = "{-1 * percentTimeScale(questionAnsweringActivityArr.slice(-1)[0]) - 2}"
-                    width = "{4 * (barPadding) - 3}" height = 4
-                />
+                {#if questionAnsweringActivityArr.length > 0}
+                    <rect class = "average-padding"
+                        x = "{barSections * 1}" y = "{-1 * percentTimeScale(questionAskingActivityArr.slice(-1)[0]) - 2}"
+                        width = "{4 * (barPadding) - 3}" height = 4
+                    />
+                    <line class = "averages"
+                        x1 = "{barSections * 1}" x2 = {(4 * barPadding) + (barSections * 1) - 3}
+                        y1 = {-1 * percentTimeScale(questionAskingActivityArr.slice(-1)[0])} y2 = {-1 * percentTimeScale(questionAskingActivityArr.slice(-1)[0])}
+                    />
+                    <rect class = "average-padding"
+                        x = "{barSections * 2}" y = "{-1 * percentTimeScale(questionAnsweringActivityArr.slice(-1)[0]) - 2}"
+                        width = "{4 * (barPadding) - 3}" height = 4
+                    />
 
                 <line class = "averages"
                     x1 = "{barSections * 2}" x2 = "{(4 * barPadding) + (barSections * 2) - 3}"
                     y1 = {-1 * percentTimeScale(questionAnsweringActivityArr.slice(-1)[0])} y2 = {-1 * percentTimeScale(questionAnsweringActivityArr.slice(-1)[0])}
                 />
 
-                <rect class = "average-padding"
-                    x = "{barSections * 3}" y = "{-1 * percentTimeScale(otherActivityArr.slice(-1)[0]) - 2}"
-                    width = "{4 * (barPadding) - 3}" height = 4
-                />
+                {/if}
+                
+                {#if otherActivityArr.length > 0}
+                    <rect class = "average-padding"
+                        x = "{barSections * 3}" y = "{-1 * percentTimeScale(otherActivityArr.slice(-1)[0]) - 2}"
+                        width = "{4 * (barPadding) - 3}" height = 4
+                    />
 
-                <line class = "averages"
-                    x1 = "{barSections * 3}" x2 = "{(4 * barPadding) + (barSections * 3) - 3}"
-                    y1 = {-1 * percentTimeScale(otherActivityArr.slice(-1)[0])} y2 = {-1 * percentTimeScale(otherActivityArr.slice(-1)[0])}
-                />
+                    <line class = "averages"
+                        x1 = "{barSections * 3}" x2 = "{(4 * barPadding) + (barSections * 3) - 3}"
+                        y1 = {-1 * percentTimeScale(otherActivityArr.slice(-1)[0])} y2 = {-1 * percentTimeScale(otherActivityArr.slice(-1)[0])}
+                    />
+                {/if}
             </g>
             <g id = "bar-labels" transform = "translate({(4) * barPadding}, {(chartHeight - (7/4) * yAxisPadding)})">
                 <text class = "activity-bars" x = "-20">Lecturing</text>

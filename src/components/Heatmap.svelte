@@ -9,6 +9,7 @@
     export let selectedLectureNumbers = [];
     export var getSelectedData; 
 	export let heatmapRange;
+	export let colorScale;
     
 	const numPrevPoints = 10
 	const animationSpeed = 200
@@ -27,9 +28,6 @@
 
 	let pause_animation
 
-	let animationColorScale
-	let lecturesColorScale
-
 	let selectedSectionsLocal = []
 
 
@@ -43,13 +41,6 @@
 			.domain(heatmapRange.y)
 			//.domain([heatmapStartingPoint.y-1000,heatmapStartingPoint.y + 1000])
 			.range([0,heatmapHeight])
-		
-		//this isn't used
-		animationColorScale = scaleOrdinal(schemeReds)
-			.domain([numPrevPoints, 0])
-
-		lecturesColorScale = scaleOrdinal(schemeCategory10)
-			.domain(lectures.map((lect, idx) => idx))
 		
 
     });
@@ -207,7 +198,7 @@
 										this_pid !== undefined 
 										? this_pid - datapoint["PID"] >= 0 && this_pid - datapoint["PID"] <= 10
 											//? `opacity: 100%; fill: ${animationColorScale(this_pid - datapoint["PID"])}`
-											? `opacity: ${100 - ((this_pid - datapoint["PID"]) * 10)}%; fill: ${lecturesColorScale(selectedLectureNum)}`
+											? `opacity: ${100 - ((this_pid - datapoint["PID"]) * 10)}%; fill: ${colorScale(selectedLectureNum)}`
 											
 											: "opacity: 30%; fill: lightgray"
 										: "opacity: 30%; fill: blue;"
@@ -232,7 +223,7 @@
 									y1={heatmapHeight - heatmapYScale(datapoint["y [pixel]"])}
 									y2={heatmapHeight - heatmapYScale(lectures[selectedLectureNum].data[idx - 1]["y [pixel]"])}
 									opacity="{100 - ((this_pid - datapoint["PID"]) * 10)}%"
-									stroke= {lecturesColorScale(selectedLectureNum)}
+									stroke= {colorScale(selectedLectureNum)}
 									stroke-width=1
 								/>
 							{/if}

@@ -50,7 +50,7 @@
 
 	const copusInterval = 120;
 
-	let instructors =  new Set()
+	let instructors =  []
 	
 	let selectedData =[];
 
@@ -205,9 +205,14 @@
 	}
 
 	onMount(async () => {
+		
+		//store a list of all the different instructors
+		let unique_instructors = new Set()
+
 
 		//Loop through all the data files stored in filenames global variable and load them
 		for(let i = 0; i < filenames.length; i++) {
+
 			let fetched = await fetch(filenames[i])
 			let fetched_json = await fetched.json();
 
@@ -224,9 +229,11 @@
 				data: fetched_json
 			})
 
-			
-			instructors.add(instructor_name);
+			//This will not allow duplicates in set
+			unique_instructors.add(instructor_name);
 		};
+
+		instructors = Array.from(unique_instructors)
 
 		//Loop through non-COPUS objects, adding relevant COPUS actions
 		//Count gives the frame number
@@ -253,7 +260,7 @@
 		lenPixel = lectures.filter(lecture => lecture.copus === false).map(movement => movement['data'].map(rows => rows['Len [pixel]']));
 		distancePixel = lectures.filter(lecture => lecture.copus === false).map(movement => movement['data'].map(rows => rows['D2P [pixel]']));
 
-		console.log("Lectures: ", lectures);
+		//console.log("Lectures: ", lectures);
 
 		//store activity types as their own variables
 		lectureActivity = lectures.filter(lecture => lecture.copus === false).map(x => x['data'].map(lecturing => lecturing['lecturing']));
@@ -400,6 +407,7 @@
 				</div>
 				<Heatmap 
 					{lectures}
+					{colorScale}
 					bind:selectedSections = {selectedSections}
 					bind:selectedLectureNumbers = {selectedLectureNumbers}
 					getSelectedData = {getSelectedData}
@@ -418,7 +426,7 @@
 							{#if selectedLectureNumbers !== undefined && filenames !== undefined && lectures !== undefined} 
 								<div class="select-options"> 
 									{#each filenames as filename, idx}
-										{#if lectures[idx].copus === false && selectedInstructors.includes(lectures[idx].instructor_name)}
+										{#if lectures.length > 0 && lectures[idx].copus === false && selectedInstructors.includes(lectures[idx].instructor_name)}
 											<label>
 												<input type="checkbox" value={idx}
 													bind:group={selectedLectureNumbers}
@@ -439,6 +447,8 @@
 
 
 		</div>
+
+		
 		<div id="chart-view" class="view-panel">
 			<div class="view-title">Instructor Statistics</div>
 			<div id="view-list">
@@ -506,6 +516,7 @@
 				{/if}
 			</div>
 		</div>
+
 		<div id  = "right-side" style="width: 180px;">
 			<div id = "legend-frame" class="view-panel">
 				<div class = "view-title">Legend</div>
