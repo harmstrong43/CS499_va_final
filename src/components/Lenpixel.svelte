@@ -8,15 +8,16 @@
     export let lines = [];
     export let currentIndex = undefined;
     export let hovered = false;
+    export let selectedLectureNumbers = [0,1,2,3];
     
 	let lenPixelTicks = [];
     let pixelIDXScale;
     let lenPixelScale;
     let pixelIDTicks = [];
-    let instructors = [0,1,2,3];
 
     export const type = "Length";
     const chartWidth = 420;
+    const instructors = [0,1,2,3];
 	const chartHeight = 420;
 	const yAxisPadding = 40;
 	const xAxisPadding = 40;
@@ -65,12 +66,12 @@
                     <text class = "tick-labels" x="9">{tick.toFixed(0)}</text>
                 </g> 
             {/each}
-            {#each lectures.filter(lecture => lecture.copus == false) as lecture, index}
+            {#each instructors as index}
                 <g id = "line-chart" transform = "translate(0, {(chartHeight - 2 * yAxisPadding)})">
                     <polyline class = "chart-line" 
                     bind:this={lines[index]}
-                    style = "stroke: {colorScale(index)}"
-                    points = "{lecture.data.map(point => pixelIDXScale(point['PID']) + "," + (-1 * lenPixelScale(point['Len [pixel]']))).join(" ")}"
+                    style = "{selectedLectureNumbers.includes(index) ? "stroke: " + colorScale(index) : "display: none"}"
+                    points = "{lectures[index].data.map(point => pixelIDXScale(point['PID']) + "," + (-1 * lenPixelScale(point['Len [pixel]']))).join(" ")}"
                     on:mouseenter={() => {
                         currentIndex = index;
                         hovered = true;

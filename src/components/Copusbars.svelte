@@ -14,16 +14,16 @@
     };
     export let hovered = false;
     export let currentIndex = undefined;
+    export let selectedLectureNumbers = [0,1,2,3];
 
     let lectureActivityArr = [];
-    let instructors = [0, 1, 2, 3];
 	let questionAskingActivityArr = [];
 	let questionAnsweringActivityArr = [];
 	let otherActivityArr = [];
     let percentTimeScale;
     let percentTimeTicks = [];
 
-    export const type = "Copus";
+    const instructors = [0,1,2,3];
     const chartWidth = 420;
 	const chartHeight = 420;
 	const yAxisPadding = 40;
@@ -83,7 +83,7 @@
                         x = 0 y= {-1 * percentTimeScale(lectureActivityArr[index])}
                         height = {percentTimeScale(lectureActivityArr[index])}
                         width = {barWidth}
-                        style = "fill: {colorScale(index)}"
+                        style = "{selectedLectureNumbers.includes(index) ? "fill: " + colorScale(index) : "display: none"}"
                         on:mouseenter={() => {
                             hovered = true;
                             currentIndex = index;
@@ -99,7 +99,7 @@
                         x = {barSections * 1} y= {-1 * percentTimeScale(questionAskingActivityArr[index])}
                         height = {percentTimeScale(questionAskingActivityArr[index])}
                         width = {barWidth}
-                        style = "fill: {colorScale(index)}"
+                        style = "{selectedLectureNumbers.includes(index) ? "fill: " + colorScale(index) : "display: none"}"
                         on:mouseenter={() => {
                             hovered = true;
                             currentIndex = index;
@@ -115,7 +115,7 @@
                         x = {barSections * 2} y= {-1 * percentTimeScale(questionAnsweringActivityArr[index])}
                         height = {percentTimeScale(questionAnsweringActivityArr[index])}
                         width = {barWidth}
-                        style = "fill: {colorScale(index)}"
+                        style = "{selectedLectureNumbers.includes(index) ? "fill: " + colorScale(index) : "display: none"}"
                         on:mouseenter={() => {
                             hovered = true;
                             currentIndex = index;
@@ -131,7 +131,7 @@
                         x = {barSections * 3} y= {-1 * percentTimeScale(otherActivityArr[index])}
                         height = {percentTimeScale(otherActivityArr[index])}
                         width = {barWidth}
-                        style = "fill: {colorScale(index)}"
+                        style = "{selectedLectureNumbers.includes(index) ? "fill: " + colorScale(index) : "display: none"}"
                         on:mouseenter={() => {
                             hovered = true;
                             currentIndex = index;

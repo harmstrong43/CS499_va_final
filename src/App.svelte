@@ -19,7 +19,8 @@
 	//import SliceBarCharts from "./components/SliceBarCharts.svelte"	
 	
 	let lectures = [];
-	let instructor_names = ["Instructor A", "Instructor B (Lecture 1)", "Instructor B (Lecture 2)", "Instructor B (Lecture 3)"];
+	let instructorNumbers = [0,1,2,3];
+	let instructorNames = ["Instructor A", "Instructor B (Lecture 1)", "Instructor B (Lecture 2)", "Instructor B (Lecture 3)"];
 	let pixelID;
 	let lenPixel;
 	let distancePixel;
@@ -144,8 +145,8 @@
 	}
 
 	$:{
-		if(clicked > 0 && legendLabels != undefined){
-			if(legendLabels.filter(x => x.classList.contains("unclicked")).length !== selectedLectureNumbers.length) {
+		if(clicked > 0 && legendLabels !== undefined){
+			if(legendLabels.filter(x => x.classList.contains("unclicked") === false).length > 0) {
 				//make unselected ones lighter
 				legendLabels.filter(x => x.classList.contains("unclicked")).forEach(y => {
 					highlightCharts(legendLabels.indexOf(y), 0.2, 0.2, 0.2);
@@ -179,14 +180,15 @@
 			}
 			else {
 				//if at least one is clicked
-				if(legendLabels.filter(x => x.classList.contains("unclicked")).length !== selectedLectureNumbers.length) {
+				console.log("Legend: ", legendLabels);
+				if(legendLabels.filter(x => x.classList.contains("unclicked") === false).length > 0) {
 					legendLabels.filter(x => x.classList.contains("unclicked")).forEach(y => {
 					//make ones that aren't clicked lighter
 					highlightCharts(legendLabels.indexOf(y), 0.2, 0.2, 0.2)
 					})
 				}
 				//if nothing is clicked
-				else if (legendLabels.filter(x => x.classList.contains("unclicked")).length === selectedLectureNumbers.length){
+				else if (legendLabels.filter(x => x.classList.contains("unclicked")).length >= selectedLectureNumbers.length){
 					//Highlight Everthing
 					legendLabels.filter(x => x.classList.contains("unclicked")).forEach(y => {
 						highlightCharts(legendLabels.indexOf(y), 0.8, 0.6, 1);
@@ -441,7 +443,7 @@
 				<div class="view-title">Pixel ID vs Len[Pixel]</div>
 				{#if pixelID !== undefined}
 					<Lenpixel lectures = {lectures} colorScale = {colorScale} 
-					lenPixel = {lenPixel} pixelID = {pixelID}
+					lenPixel = {lenPixel} pixelID = {pixelID} selectedLectureNumbers = {selectedLectureNumbers}
 					bind:lines={lenLines} bind:currentIndex={currentIndex} bind:hovered={hovered}/>
 				{/if}
 			</div>
@@ -450,7 +452,8 @@
 			<div id="Distance-to-current-point" class="view-panel">
 				<div class="view-title">Distance to Current Point</div>
 				{#if pixelID !== undefined}
-					<Distance lectures = {lectures} colorScale = {colorScale} pixelID = {pixelID} distancePixel = {distancePixel}
+					<Distance lectures = {lectures} colorScale = {colorScale} 
+					pixelID = {pixelID} distancePixel = {distancePixel} selectedLectureNumbers={selectedLectureNumbers}
 					bind:distLines={distLines} bind:currentIndex={currentIndex} bind:hovered={hovered}/>
 				{/if}
 			</div>
@@ -462,7 +465,7 @@
 				{#if lectureActivity !== undefined}
 					<Copusbars colorScale = {colorScale}
 					 lectureActivity = {lectureActivity} questionAnsweringActivity = {questionAnsweringActivity}
-					 questionAskingActivity = {questionAskingActivity} otherActivity = {otherActivity} 
+					 questionAskingActivity = {questionAskingActivity} otherActivity = {otherActivity} selectedLectureNumbers={selectedLectureNumbers}
 					 bind:bars={bars} bind:hovered={hovered} bind:currentIndex={currentIndex} />
 				{/if}
 			</div>
@@ -473,17 +476,22 @@
 					<svg id = "legend" width="175px" height = "80px">
 						<g id = "legend-lines" transform = "translate(10, 15)">
 							{#if colorScale !== undefined}
-								{#each selectedLectureNumbers as instructor}
+								{#each instructorNumbers as instructor}
+								{console.log("included instructor: ", selectedLectureNumbers.includes(instructor))}
 									<line id="legend-instructor-{instructor}"
-									class = "legend-line" style = "stroke: {colorScale(instructor)}"
-									x2 = "20" y1 = {(60 / selectedLectureNumbers.length) * instructor} y2 = {(60 / selectedLectureNumbers.length) * instructor} />
-									<text class="legend-labels unclicked" bind:this={legendLabels[instructor]} x = "25" y= {(60 / selectedLectureNumbers.length) * instructor + 3}
+									class = "legend-line" style = "{selectedLectureNumbers.includes(instructor) ? "stroke: " + colorScale(instructor) : "display: none"}"
+									x2 = "20" y1 = {(60 / instructorNumbers.length) * instructor} y2 = {(60 / instructorNumbers.length) * instructor} />
+									<text 
+									class="legend-labels unclicked" 
+									style = "{selectedLectureNumbers.includes(instructor) ? "" : "display: none"}"
+									bind:this={legendLabels[instructor]} 
+									x = "25" y= {(60 / instructorNumbers.length) * instructor + 3}
 										on:click={() => {
 												legendLabels[instructor].classList.toggle("unclicked")
 												currentIndex = instructor;
 												clicked += 1;}}
 									>
-										{instructor_names[instructor]}</text>
+										{instructorNames[instructor]}</text>
 								{/each}
 							{/if}
 						</g>

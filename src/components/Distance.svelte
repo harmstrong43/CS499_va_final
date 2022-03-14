@@ -8,14 +8,15 @@
     export let distLines = [];
     export let hovered = false;
     export let currentIndex = undefined;
+    export let selectedLectureNumbers = [0,1,2,3];
     
     let distPixelIDXScale;
     let distancePixelScale;
 	let distancePixelTicks = [];
 	let distpixelIDTicks = [];
-    let instructors = [0,1,2,3];
 
     export const type = "Distance";
+    const instructors = [0,1,2,3];
     const chartWidth = 420;
 	const chartHeight = 420;
 	const yAxisPadding = 40;
@@ -103,12 +104,12 @@
                 <text class = "tick-labels smaller" x="-12" y = "1">{tick.toFixed(0)}</text>
             </g> 
         {/each}
-        {#each lectures.filter(lecture => lecture.copus == false) as lecture, index}
+        {#each instructors as index}
             <g id = "line-chart" transform = "translate({(index % 2) * (distxAxisLength + 2 * dividedAxisPadding)}, {(chartHeight - 2 * yAxisPadding) - (isTwoOrThree(index) * (distyAxisLength + 2 * dividedAxisPadding))})">
                 <polyline class = "chart-line"
                     bind:this={distLines[index]} 
-                    style = "stroke: {colorScale(index)}"
-                    points = "{lecture.data.slice(1).map(point => distPixelIDXScale(point['PID']) + "," + (-1 * distancePixelScale(point['D2P [pixel]']))).join(" ")}" 
+                    style = "{selectedLectureNumbers.includes(index) ? "stroke: " + colorScale(index) : "display: none"}"
+                    points = "{lectures[index].data.slice(1).map(point => distPixelIDXScale(point['PID']) + "," + (-1 * distancePixelScale(point['D2P [pixel]']))).join(" ")}" 
                     on:mouseenter={() => {
                         hovered = true;
                         currentIndex = index;

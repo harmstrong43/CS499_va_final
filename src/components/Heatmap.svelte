@@ -43,7 +43,7 @@
 </script>
 
 <div style="height:100%;" bind:clientWidth={heatmapWidth} bind:clientHeight={heatmapHeight}>
-	<svg style="height:{heatmapHeight}; width:{heatmapWidth};">
+	<svg style="height:100%; width:100%;">
 		<g id="heatmap-scatterplot">
 			{#if lectures !== undefined && selectedLectureNumbers!== undefined}
 				{#each selectedLectureNumbers as selectedLectureNum}
