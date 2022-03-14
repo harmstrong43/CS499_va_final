@@ -52,8 +52,11 @@
 
 	let instructors =  new Set()
 	
-	let selectedData;
-	let selectedSection;
+	let selectedData =[];
+
+	//quarters of classroom selected
+	let selectedSections = new Set();
+	const allSections = [0,1,2,3]
 	
 	let selectedLectureNumbers;
 	let selectedInstructors;
@@ -263,10 +266,28 @@
 
 		
 
-		//start out with all instructors and lectures selected
-		selectedData = []
+		//start out with all instructors, quarters, and lectures selected
 		selectedInstructors = instructors
 		selectedLectureNumbers=[0,1,2,3]
+
+		//add all sections to selectedSections
+		allSections.forEach(i => selectedSections.add(i)) 
+
+
+		//all non-copus data selected to start
+		let temp_data = []
+		lectures.forEach((lect, idx) => {
+			if (lect.copus === false) {
+				temp_data.push({
+					lecture_num: idx,
+					data: lect.data,
+					instructor_name: lect.instructor_name,
+					copus: lect.copus
+				})
+			}
+		})
+
+		selectedData = temp_data
 
 		colorScale = scaleOrdinal(schemeCategory10)
 		.domain(selectedLectureNumbers);
@@ -303,19 +324,19 @@
 
 	//When data is filtered (i.e. quadrant, lecture, or instructor checked or unchecked)
 	function getSelectedData(){
-		//console.log("Selected lecture:", selectedLectureNumbers, "Selected section:", selectedSection)
+		//console.log("Selected lecture:", selectedLectureNumbers, "Selected sections:", selectedSections)
 		let starting_point = setStartingPoint()
 	
 		selectedData = []
 
-				//console.log("Starting Point:", starting_point)
-				if (selectedSection =="Q1")
+		//console.log("Starting Point:", starting_point)
+		if (selectedSections.has(0))
 			selectedData.push(...filterSelectedData(starting_point.x, Infinity, starting_point.y, Infinity))
-		if (selectedSection == "Q2")
+		if (selectedSections.has(1))
 			selectedData.push(...filterSelectedData(starting_point.x, Infinity, Number.NEGATIVE_INFINITY, starting_point.y))
-		if (selectedSection == "Q3")
+		if (selectedSections.has(2))
 			selectedData.push(...filterSelectedData(Number.NEGATIVE_INFINITY, starting_point.x, Number.NEGATIVE_INFINITY, starting_point.y))
-		if (selectedSection == "Q4")
+		if (selectedSections.has(3))
 			selectedData.push(...filterSelectedData(Number.NEGATIVE_INFINITY, starting_point.x, starting_point.y, Infinity))
 	}
 
@@ -366,12 +387,12 @@
 				<div id="instructor-activity">
 					<p id="instructor-activity-word">LECTURING</p>
 				</div>
-					<Heatmap 
-					lectures={lectures}
-					bind:selectedSection={selectedSection}
-					bind:selectedLectureNumbers={selectedLectureNumbers}
-					getSelectedData={getSelectedData}
-					heatmapRange={dataRange} />
+				<Heatmap 
+					{lectures}
+					bind:selectedSections = {selectedSections}
+					bind:selectedLectureNumbers = {selectedLectureNumbers}
+					getSelectedData = {getSelectedData}
+					heatmapRange = {dataRange} />
 			</div>
 
 			
@@ -414,14 +435,17 @@
 				<p id="stat1">Instructor X spent the most time doing this activity: ACT</p>
 				<p id="stat2">Instructor X traveled this maximum distance away from the original location: DIST</p>
 				<p id="stat3">Continues...</p>-->
+				
+				<!--
 				<h4 id="slice-select-title">Select a Quarter of Room</h4>
-				<select bind:value={selectedSection} on:change="{() => getSelectedData()}">
-					<option value="N/A"></option>
-					<option value="Q1">Q1</option>
-					<option value="Q2">Q2</option>
-					<option value="Q3">Q3</option>
-					<option value="Q4">Q4</option>
+				<select multiple bind:value={selectedSections} on:change="{() => getSelectedData()}">
+					
+					<option value=0>Q1</option>
+					<option value=1>Q2</option>
+					<option value=2>Q3</option>
+					<option value=3>Q4</option>
 				</select>
+				-->
 
 				<PerQuarterBarChart
 					lectures={lectures}
