@@ -6,12 +6,15 @@
 	
     export let lectures;
     export let selectedSection = undefined;
-    export let selectedLectureNumbers = undefined;
+    export let selectedLectureNumbers = [];
     export var getSelectedData; 
 	export let heatmapRange;
     
-
 	const numPrevPoints = 10
+	const animationSpeed = 200
+
+	//do elements go to front in animation? This is a bit resource intensive
+	const bringToFront = true
 
     let heatmapXScale
     let heatmapYScale 
@@ -39,7 +42,7 @@
 			//.domain([heatmapStartingPoint.y-1000,heatmapStartingPoint.y + 1000])
 			.range([0,heatmapHeight])
 		
-
+		//this isn't used
 		animationColorScale = scaleOrdinal(schemeReds)
 			.domain([numPrevPoints, 0])
 
@@ -51,35 +54,25 @@
     });
 
 	afterUpdate(() => {
-		lectures.filter(e => e.copus === false).forEach(lect => {
-			let this_lecture_greatest_pid = Math.max(...lect.data.map(e => e["PID"]))
+		//calculate the largest PID in the selected data. This is end of animation and timer.
+		greatest_pid = 0
+		selectedLectureNumbers.forEach(num => {
+			let this_lecture_greatest_pid = Math.max(...lectures[num].data.map(e => e["PID"]))
 
 			if (this_lecture_greatest_pid > greatest_pid)
 				greatest_pid = this_lecture_greatest_pid
 		})
+
+		//console.log(greatest_pid)
 	})
-/*
-	function getFillColor(pid) {
-		if (this_pid !== undefined) {
-			let x = this_pid - pid 
-			if (x >= 0 && x <= 10 ){
-				return colorScale(x)
-			} else {
-				return "lightgrey"
-			}
-		}
-		return "blue"
-
-	}
-*/
-
 
 	function animate(start_pid) {
-		console.log("Animating")
+		//console.log("Animating")
 		
 		var counter = start_pid
 		var timer = setInterval(() => {
-			//pause when we hit 
+			
+			//pause when it sees that we've hit pause
 			if (pause_animation) {
 				clearInterval(timer)
 			}
@@ -87,35 +80,153 @@
 			//stop once we've reached the end of the animation
 			if (counter >= greatest_pid) {
 				clearInterval(timer)
-				this_pid = undefined
+
+				//TODO: Find out if we want to exit animation mode when animation ends
+				//this_pid = undefined
 			}
+
+			//if we want to bring the current element to the front of the heatmap, that happens here
+			//svelte orders elements based on position in the DOM, so this puts it at end, thus on top
+			if (bringToFront) {
+				var this_point = d3.select(`#heatmap-datapoint-${counter}`).node()
+				if (this_point) {
+					this_point.parentElement.appendChild(this_point)
+				}
+			}
+
 			this_pid = counter;
 			counter++;
-		}, 100)
+		}, animationSpeed)
 
 	}
 
+	
 	function playButtonClick() {
-		animate(0)
+		pause_animation = false
+		if (this_pid !== undefined)
+			//if already in animation mode, start where we left off
+			animate(this_pid)
+		else
+			//start at beginning
+			animate(0)
 	}
 
 	function pauseButtonClick() {
-		pause_animation = !pause_animation
-		if (!pause_animation){
-			animate(this_pid)
-		}
+		pause_animation = true
+
+		//wait to make sure current iteration of animation has finished
+		setTimeout(() => {
+			//console.log("Paused")
+		}, animationSpeed + 2)
 	}
 
+	
 	function stopButtonClick() {
 		pause_animation = true
-		this_pid = undefined
+
+		//wait to make sure current iteration of animation has finished
+		setTimeout(() => { 
+			//exit animation mode
+			this_pid = undefined
+		}, animationSpeed + 2)
 	}
 
+	function toStartButtonClick() {
+		//pause the animation when this button is clicked
+		pause_animation = true
+
+		//wait to make sure current iteration of animation has finished
+		setTimeout(() => { 
+			//go back to beginning
+			this_pid = 0
+		}, animationSpeed + 2)
+	}
+
+	function toEndButtonClick() {
+		//pause the animation when this button is clicked
+		pause_animation = true
+		setTimeout(() => { 
+			//go to end
+			this_pid = greatest_pid
+		}, animationSpeed + 2)
+	}
+
+	function stepForwardButtonClick() {
+		//pause the animation when this button is clicked
+		pause_animation = true
+		setTimeout(() => { 
+			if (this_pid < greatest_pid) {
+				//go to next point
+				this_pid = this_pid + 1
+			}
+		}, animationSpeed + 2)
+	}
+
+	function stepBackwardButtonClick() {
+		//pause the animation when this button is clicked
+		pause_animation = true
+		setTimeout(() => { 
+			
+			if (this_pid > 0) {
+				//go to previous point
+				this_pid = this_pid - 1
+			}
+		}, animationSpeed + 2)
+	}
 
 </script>
 
-<div style="height:80%;" bind:clientWidth={heatmapWidth} bind:clientHeight={heatmapHeight}>
+<div style="height:100%;" bind:clientWidth={heatmapWidth} bind:clientHeight={heatmapHeight}>
 	<svg style="height:100%; width:100%">
+
+		<g id="heatmap-scatterplot">
+			{#if lectures !== undefined && selectedLectureNumbers!== undefined}
+				{#each selectedLectureNumbers as selectedLectureNum}
+					{#if lectures[selectedLectureNum] !== undefined}
+						{#each lectures[selectedLectureNum].data as datapoint, idx}
+							<circle
+								id="heatmap-datapoint-{datapoint["Nr"]}"
+								style="
+									{
+										this_pid !== undefined 
+										? this_pid - datapoint["PID"] >= 0 && this_pid - datapoint["PID"] <= 10
+											//? `opacity: 100%; fill: ${animationColorScale(this_pid - datapoint["PID"])}`
+											? `opacity: ${100 - ((this_pid - datapoint["PID"]) * 10)}%; fill: ${lecturesColorScale(selectedLectureNum)}`
+											
+											: "opacity: 30%; fill: lightgray"
+										: "opacity: 30%; fill: blue;"
+									}
+								"
+								cx={heatmapXScale(datapoint["x [pixel]"])}
+								cy={heatmapHeight - heatmapYScale(datapoint["y [pixel]"])}
+								r="{
+									this_pid !== undefined
+									? this_pid == datapoint["PID"]  
+										? 8 
+										: 3
+									: 1.5
+								}"
+								
+							/>
+
+							{#if this_pid - datapoint["PID"] >= 0 && this_pid - datapoint["PID"] <= 10 && idx > 0}
+								<line 
+									x1={heatmapXScale(datapoint["x [pixel]"])}
+									x2={heatmapXScale(lectures[selectedLectureNum].data[idx - 1]["x [pixel]"])}
+									y1={heatmapHeight - heatmapYScale(datapoint["y [pixel]"])}
+									y2={heatmapHeight - heatmapYScale(lectures[selectedLectureNum].data[idx - 1]["y [pixel]"])}
+									opacity="{100 - ((this_pid - datapoint["PID"]) * 10)}%"
+									stroke= {lecturesColorScale(selectedLectureNum)}
+									stroke-width=1
+								/>
+							{/if}
+						{/each}
+					{/if}
+				{/each}
+			{/if}
+		</g>
+
+
 		{#if heatmapHeight !== undefined && heatmapWidth !== undefined}
 			
 			<g id="classroom-section-selectors-box">
@@ -168,76 +279,55 @@
 					}}" />
 			</g>
 		{/if}
-
-		<g id="heatmap-scatterplot">
-			{#if lectures !== undefined && selectedLectureNumbers!== undefined}
-				{#each selectedLectureNumbers as selectedLectureNum}
-					{#if lectures[selectedLectureNum] !== undefined}
-						{#each lectures[selectedLectureNum].data as datapoint, idx}
-							<circle
-								id="heatmap-datapoint-{datapoint["Nr"]}"
-								style="
-									{
-										this_pid !== undefined 
-										? this_pid - datapoint["PID"] >= 0 && this_pid - datapoint["PID"] <= 10
-											//? `opacity: 100%; fill: ${animationColorScale(this_pid - datapoint["PID"])}`
-											? `opacity: ${100 - ((this_pid - datapoint["PID"]) * 10)}%; fill: ${lecturesColorScale(selectedLectureNum)}`
-											
-											: "opacity: 30%; fill: lightgray"
-										: "opacity: 30%; fill: blue;"
-									}
-								"
-								cx={heatmapXScale(datapoint["x [pixel]"])}
-								cy={heatmapHeight - heatmapYScale(datapoint["y [pixel]"])}
-								r="{
-									this_pid !== undefined
-									? this_pid == datapoint["PID"]  
-										? 8 
-										: 3
-									: 1.5
-								}"
-								
-							/>
-
-							{#if this_pid - datapoint["PID"] >= 0 && this_pid - datapoint["PID"] <= 10 && idx > 0}
-								<line 
-									x1={heatmapXScale(datapoint["x [pixel]"])}
-									x2={heatmapXScale(lectures[selectedLectureNum].data[idx - 1]["x [pixel]"])}
-									y1={heatmapHeight - heatmapYScale(datapoint["y [pixel]"])}
-									y2={heatmapHeight - heatmapYScale(lectures[selectedLectureNum].data[idx - 1]["y [pixel]"])}
-									opacity="{100 - ((this_pid - datapoint["PID"]) * 10)}%"
-									stroke= {lecturesColorScale(selectedLectureNum)}
-									stroke-width=1
-								/>
-							{/if}
-						{/each}
-					{/if}
-				{/each}
-			{/if}
-		</g>
 		
+		{#if this_pid !== undefined}
+			<text class="cancel-button-icon" x=25 y=45>X</text>
+			<rect class="cancel-button" on:click="{() => stopButtonClick()}" />
+		{/if}
+
 	</svg>
-
 	
+
 </div>
-<button 
-			style="width: 1000px; height: 200px; background-color: green;" 
-			on:click="{() => playButtonClick()}">
-			Animate
-</button>
-<button 
-			style="width: 1000px; height: 200px; background-color: red;" 
-			on:click="{() => pauseButtonClick()}">
-			Pause
-</button>
-<input type=range value={this_pid} min=0 max={greatest_pid}>
-<p>This PID: {this_pid}</p>
+<div style="height: 30px;">
+	{#if this_pid !== undefined}
+		<input style="width: 100%" type=range min=0 max={greatest_pid} 
+			bind:value={this_pid} 
+			on:click={() => pauseButtonClick()}/>
+	{/if}	
+</div>
 
-	
+<div class="view-icons">
+	<button on:click={() => toStartButtonClick()}>
+		<i class="fas fa-fast-backward fas2"id="i-back"></i>
+	</button>
+	<button on:click={() => stepBackwardButtonClick()}>
+		<i class="fas fa-step-backward fas2"id="i-back"></i>
+	</button>
+	{#if pause_animation || this_pid === undefined}
+		<button on:click="{() => playButtonClick()}">
+			<i class="fas fa-play fas2"id="i-play"></i>
+		</button>
+	{:else}
+		<button on:click="{() => pauseButtonClick()}">
+			<i class="fas fa-pause fas2"id="i-pause"></i>
+		</button>
+	{/if}
+	<button on:click={() => stepForwardButtonClick()}>
+		<i class="fas fa-step-forward fas2"id="i-back"></i>
+	</button>
+	<button on:click="{() => toEndButtonClick()}">
+		<i class="fas fa-fast-forward fas2"id="i-forward"></i>
+	</button>
+</div>
+
+<!--<p>This PID: {this_pid}</p>-->
+
 
 <style>
 	.classroom-section-selector {
 		opacity: 40%;
+		z-index:1;
 	}
 	.classroom-section-selector:hover {
 		cursor: pointer;
@@ -246,5 +336,38 @@
 
 	#heatmap-scatterplot circle {
 		transition: r 0.2s;
+	}
+
+	
+	.view-icons {
+		display:flex;
+		justify-content:center;
+	}
+
+	.view-icons button {
+		font-size:30px;
+		background-color: transparent;
+		width: 50px;
+		margin: 5px 0;
+		border: none;
+		margin: 0;
+		cursor: pointer;
+	}
+
+	.cancel-button {
+		fill: grey;
+		opacity: 0%;
+		height: 70px;
+		width: 70px;
+		cursor: pointer;
+	}
+
+	.cancel-button:hover {
+		opacity: 35%;
+	}
+
+	.cancel-button-icon {
+		fill: red;
+		font-size:30px;
 	}
 </style>
