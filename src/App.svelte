@@ -294,27 +294,16 @@
 		
 	});
 
-	//return subset of lectures that only contains points within coordinate bounds
-	function filterSelectedData(xmin, xmax, ymin, ymax) {
-		let data = []
-		selectedLectureNumbers.forEach((num) => {
-			if (selectedInstructors.includes(lectures[num].instructor_name)) {
-				data.push({
-					instructor_name: lectures[num].instructor_name,
-					lecture_num: num,
-					data: [...lectures[num].data.filter((e) => {
-					return e["x [pixel]"] > xmin 
-						&&  e["x [pixel]"] < xmax 
-						&& e["y [pixel]"] > ymin 
-						&& e["y [pixel]"] < ymax
-					})]
-				})
-			}
-		})		
-		return data
-		//getTotalDistance()
+	function getSectionData(num, xmin, xmax, ymin, ymax) {
+		 return lectures[num].data.filter((e) => {
+			return e["x [pixel]"] > xmin 
+				&&  e["x [pixel]"] < xmax 
+				&& e["y [pixel]"] > ymin 
+				&& e["y [pixel]"] < ymax
+		})
 	}
 
+	//find the midpoint of data
 	function setStartingPoint(){
 		return {
 			x: dataRange.x[1]/2,
@@ -324,20 +313,42 @@
 
 	//When data is filtered (i.e. quadrant, lecture, or instructor checked or unchecked)
 	function getSelectedData(){
-		//console.log("Selected lecture:", selectedLectureNumbers, "Selected sections:", selectedSections)
+		console.log("Selected lecture:", selectedLectureNumbers, "Selected sections:", selectedSections)
 		let starting_point = setStartingPoint()
-	
-		selectedData = []
 
-		//console.log("Starting Point:", starting_point)
-		if (selectedSections.has(0))
-			selectedData.push(...filterSelectedData(starting_point.x, Infinity, starting_point.y, Infinity))
-		if (selectedSections.has(1))
-			selectedData.push(...filterSelectedData(starting_point.x, Infinity, Number.NEGATIVE_INFINITY, starting_point.y))
-		if (selectedSections.has(2))
-			selectedData.push(...filterSelectedData(Number.NEGATIVE_INFINITY, starting_point.x, Number.NEGATIVE_INFINITY, starting_point.y))
-		if (selectedSections.has(3))
-			selectedData.push(...filterSelectedData(Number.NEGATIVE_INFINITY, starting_point.x, starting_point.y, Infinity))
+
+		let this_data;
+		let new_selected_data = []
+		
+
+		//for each lecture, create a new object of same structure whose data: member is only the selected data from that instructor
+		selectedLectureNumbers.forEach(num => {
+			this_data = []
+
+			//console.log("Starting Point:", starting_point)
+			if (selectedSections.has(0)){
+				this_data = this_data.concat(getSectionData(num, starting_point.x,Infinity, starting_point.y, Infinity))
+			}
+			if (selectedSections.has(1)){
+				this_data = this_data.concat(getSectionData(num, starting_point.x, Infinity, Number.NEGATIVE_INFINITY, starting_point.y))
+			}
+			if (selectedSections.has(2)){
+				this_data = this_data.concat(getSectionData(num, Number.NEGATIVE_INFINITY, starting_point.x, Number.NEGATIVE_INFINITY, starting_point.y))
+			}
+			if (selectedSections.has(3)){
+				this_data = this_data.concat(getSectionData(num, Number.NEGATIVE_INFINITY, starting_point.x, starting_point.y, Infinity))
+			}
+			
+			new_selected_data.push({
+				instructor_name: lectures[num].instructor_name,
+				lecture_num: num,
+				data: this_data,
+				copus: lectures[num].copus
+			})
+		})
+
+		selectedData = new_selected_data
+		//console.log("New Selected Data: ",selectedData)
 	}
 
 
