@@ -4,6 +4,7 @@
 
 <svelte:head>
 	<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+	<script src="https://d3js.org/d3.v4.min.js"></script>
 </svelte:head>
 <script>
 	import { onMount } from "svelte";
@@ -13,6 +14,8 @@
 
 	import Heatmap from "./components/Heatmap.svelte"
 	import PerQuarterBarChart from "./components/PerQuarterBarChart.svelte"
+	//import Timeline from "./components/Timeline.svelte"
+	//import SliceBarCharts from "./components/SliceBarCharts.svelte"
 	import Lenpixel from "./components/Lenpixel.svelte";
 	import Distance from "./components/Distance.svelte";
 	import Copusbars from "./components/Copusbars.svelte";
@@ -397,14 +400,12 @@
 						</div>
 					</div>
 				</div>
-				<div class="view-icons">
-					<i class="fas fa-fast-backward fas2"id="i-back"></i>
-					<i class="fas fa-step-backward fas2"id="i-backstep"></i>
-					<i class="fas fa-play fas2"id="i-play"></i>
-					<i class="fas fa-step-forward fas2"id="i-forwardstep"></i>
-					<i class="fas fa-fast-forward fas2"id="i-forward"></i>
-				</div>
+				
 			</div>
+
+			<!--<Timeline {lectures} {selectedLectureNumbers} range={dataRange} />-->
+
+
 		</div>
 		<div id="chart-view" class="view-panel">
 			<div class="view-title">Instructor Statistics</div>
@@ -606,6 +607,7 @@
 		text-align: center;
 		font-weight: 500;
 		font-size: 15px;
+		margin: 9px 0;
 	}
 	#i-dropdown
 	{
@@ -700,12 +702,6 @@
 		bottom:0;
 		width:100%;
 		background-color:#B6B3BD;
-	}
-	.view-icons
-	{
-		display:flex;
-		justify-content:center;
-		padding:5px;
 	}
 
 /* 

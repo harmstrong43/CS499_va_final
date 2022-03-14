@@ -1,21 +1,34 @@
 <script>
-    import { onMount } from "svelte";
-	import { scaleLinear } from "d3-scale"; 
+    import { onMount, afterUpdate } from "svelte";
+	import { scaleLinear, scaleOrdinal } from "d3-scale"; 
+	import { schemeReds, schemeCategory10 } from "d3-scale-chromatic";
 
+	
     export let lectures;
     export let selectedSection = undefined;
-    export let selectedLectureNumbers = undefined;
+    export let selectedLectureNumbers = [];
     export var getSelectedData; 
 	export let heatmapRange;
     
+	const numPrevPoints = 10
+	const animationSpeed = 200
+
+	//do elements go to front in animation? This is a bit resource intensive
+	const bringToFront = true
+
     let heatmapXScale
     let heatmapYScale 
 
-	let timelineXScale
-	let timelineYScale
-
     let heatmapWidth;
 	let heatmapHeight;
+
+	let this_pid
+	let greatest_pid = 0
+
+	let pause_animation
+
+	let animationColorScale
+	let lecturesColorScale
 
 
     onMount(async () => {
@@ -28,52 +41,192 @@
 			.domain(heatmapRange.y)
 			//.domain([heatmapStartingPoint.y-1000,heatmapStartingPoint.y + 1000])
 			.range([0,heatmapHeight])
+		
+		//this isn't used
+		animationColorScale = scaleOrdinal(schemeReds)
+			.domain([numPrevPoints, 0])
 
-			/*
-		timelineXScale = scaleLinear()
-			//.domain([0, Math.max(...lectures.map(e => e.data["Nr"]))])
-			.domain([0,1000])
-			.range([0,heatmapWidth])
+		lecturesColorScale = scaleOrdinal(schemeCategory10)
+			.domain(lectures.map((lect, idx) => idx))
 
-		timelineYScale = scaleLinear()
-			.domain(heatmapRange.y)
-			.range([0,50])
-			*/
+		
+
     });
+
+	afterUpdate(() => {
+		//calculate the largest PID in the selected data. This is end of animation and timer.
+		greatest_pid = 0
+		selectedLectureNumbers.forEach(num => {
+			let this_lecture_greatest_pid = Math.max(...lectures[num].data.map(e => e["PID"]))
+
+			if (this_lecture_greatest_pid > greatest_pid)
+				greatest_pid = this_lecture_greatest_pid
+		})
+
+		//console.log(greatest_pid)
+	})
+
+	function animate(start_pid) {
+		//console.log("Animating")
+		
+		var counter = start_pid
+		var timer = setInterval(() => {
+			
+			//pause when it sees that we've hit pause
+			if (pause_animation) {
+				clearInterval(timer)
+			}
+
+			//stop once we've reached the end of the animation
+			if (counter >= greatest_pid) {
+				clearInterval(timer)
+
+				//TODO: Find out if we want to exit animation mode when animation ends
+				//this_pid = undefined
+			}
+
+			//if we want to bring the current element to the front of the heatmap, that happens here
+			//svelte orders elements based on position in the DOM, so this puts it at end, thus on top
+			if (bringToFront) {
+				var this_point = d3.select(`#heatmap-datapoint-${counter}`).node()
+				if (this_point) {
+					this_point.parentElement.appendChild(this_point)
+				}
+			}
+
+			this_pid = counter;
+			counter++;
+		}, animationSpeed)
+
+	}
+
+	
+	function playButtonClick() {
+		pause_animation = false
+		if (this_pid !== undefined)
+			//if already in animation mode, start where we left off
+			animate(this_pid)
+		else
+			//start at beginning
+			animate(0)
+	}
+
+	function pauseButtonClick() {
+		pause_animation = true
+
+		//wait to make sure current iteration of animation has finished
+		setTimeout(() => {
+			//console.log("Paused")
+		}, animationSpeed + 2)
+	}
+
+	
+	function stopButtonClick() {
+		pause_animation = true
+
+		//wait to make sure current iteration of animation has finished
+		setTimeout(() => { 
+			//exit animation mode
+			this_pid = undefined
+		}, animationSpeed + 2)
+	}
+
+	function toStartButtonClick() {
+		//pause the animation when this button is clicked
+		pause_animation = true
+
+		//wait to make sure current iteration of animation has finished
+		setTimeout(() => { 
+			//go back to beginning
+			this_pid = 0
+		}, animationSpeed + 2)
+	}
+
+	function toEndButtonClick() {
+		//pause the animation when this button is clicked
+		pause_animation = true
+		setTimeout(() => { 
+			//go to end
+			this_pid = greatest_pid
+		}, animationSpeed + 2)
+	}
+
+	function stepForwardButtonClick() {
+		//pause the animation when this button is clicked
+		pause_animation = true
+		setTimeout(() => { 
+			if (this_pid < greatest_pid) {
+				//go to next point
+				this_pid = this_pid + 1
+			}
+		}, animationSpeed + 2)
+	}
+
+	function stepBackwardButtonClick() {
+		//pause the animation when this button is clicked
+		pause_animation = true
+		setTimeout(() => { 
+			
+			if (this_pid > 0) {
+				//go to previous point
+				this_pid = this_pid - 1
+			}
+		}, animationSpeed + 2)
+	}
+
 </script>
 
 <div style="height:100%;" bind:clientWidth={heatmapWidth} bind:clientHeight={heatmapHeight}>
-	<svg style="height:100%; width:100%;">
+	<svg style="height:100%; width:100%">
+
 		<g id="heatmap-scatterplot">
 			{#if lectures !== undefined && selectedLectureNumbers!== undefined}
 				{#each selectedLectureNumbers as selectedLectureNum}
 					{#if lectures[selectedLectureNum] !== undefined}
-						{#each lectures[selectedLectureNum].data as datapoint}
+						{#each lectures[selectedLectureNum].data as datapoint, idx}
 							<circle
 								id="heatmap-datapoint-{datapoint["Nr"]}"
+								style="
+									{
+										this_pid !== undefined 
+										? this_pid - datapoint["PID"] >= 0 && this_pid - datapoint["PID"] <= 10
+											//? `opacity: 100%; fill: ${animationColorScale(this_pid - datapoint["PID"])}`
+											? `opacity: ${100 - ((this_pid - datapoint["PID"]) * 10)}%; fill: ${lecturesColorScale(selectedLectureNum)}`
+											
+											: "opacity: 30%; fill: lightgray"
+										: "opacity: 30%; fill: blue;"
+									}
+								"
 								cx={heatmapXScale(datapoint["x [pixel]"])}
 								cy={heatmapHeight - heatmapYScale(datapoint["y [pixel]"])}
-								r=1.5
-								fill="blue"
-								opacity="0.3"
+								r="{
+									this_pid !== undefined
+									? this_pid == datapoint["PID"]  
+										? 8 
+										: 3
+									: 1.5
+								}"
+								
 							/>
+
+							{#if this_pid - datapoint["PID"] >= 0 && this_pid - datapoint["PID"] <= 10 && idx > 0}
+								<line 
+									x1={heatmapXScale(datapoint["x [pixel]"])}
+									x2={heatmapXScale(lectures[selectedLectureNum].data[idx - 1]["x [pixel]"])}
+									y1={heatmapHeight - heatmapYScale(datapoint["y [pixel]"])}
+									y2={heatmapHeight - heatmapYScale(lectures[selectedLectureNum].data[idx - 1]["y [pixel]"])}
+									opacity="{100 - ((this_pid - datapoint["PID"]) * 10)}%"
+									stroke= {lecturesColorScale(selectedLectureNum)}
+									stroke-width=1
+								/>
+							{/if}
 						{/each}
 					{/if}
 				{/each}
 			{/if}
 		</g>
 
-		<!--
-		<rect
-			height="{heatmapHeight}"
-			width="{heatmapWidth}"
-			x="0"
-			y="0"
-			fill="transparent"
-			stroke="black"
-			stroke-width="1" />
 
-		-->
 		{#if heatmapHeight !== undefined && heatmapWidth !== undefined}
 			
 			<g id="classroom-section-selectors-box">
@@ -126,30 +279,50 @@
 					}}" />
 			</g>
 		{/if}
+		
+		{#if this_pid !== undefined}
+			<text class="cancel-button-icon" x=25 y=45>X</text>
+			<rect class="cancel-button" on:click="{() => stopButtonClick()}" />
+		{/if}
 
-	<!--
-		<g id="lecture-timeline">
-			{#if lectures !== undefined && selectedLectureNumbers!== undefined}
-				{#each selectedLectureNumbers as selectedLectureNum}
-					{#if lectures[selectedLectureNum] !== undefined}
-						{#each lectures[selectedLectureNum].data as datapoint}
-								
-							<circle
-								cx="{timelineXScale(datapoint.Nr)}"
-								cy="{heatmapHeight - timelineYScale(datapoint["D2S [pixel]"])}"
-								r="1"
-								fill="{datapoint["x [pixel]"] > heatmapRange.x / 2 ? "green" : "grey"}"
-							/>
-						{/each}
-					{/if}
-				{/each}
-			{/if}
-		</g>
-		-->
 	</svg>
+	
+
+</div>
+<div style="height: 30px;">
+	{#if this_pid !== undefined}
+		<input style="width: 100%" type=range min=0 max={greatest_pid} 
+			bind:value={this_pid} 
+			on:click={() => pauseButtonClick()}/>
+	{/if}	
 </div>
 
-	
+<div class="view-icons">
+	<button on:click={() => toStartButtonClick()}>
+		<i class="fas fa-fast-backward fas2"id="i-back"></i>
+	</button>
+	<button on:click={() => stepBackwardButtonClick()}>
+		<i class="fas fa-step-backward fas2"id="i-back"></i>
+	</button>
+	{#if pause_animation || this_pid === undefined}
+		<button on:click="{() => playButtonClick()}">
+			<i class="fas fa-play fas2"id="i-play"></i>
+		</button>
+	{:else}
+		<button on:click="{() => pauseButtonClick()}">
+			<i class="fas fa-pause fas2"id="i-pause"></i>
+		</button>
+	{/if}
+	<button on:click={() => stepForwardButtonClick()}>
+		<i class="fas fa-step-forward fas2"id="i-back"></i>
+	</button>
+	<button on:click="{() => toEndButtonClick()}">
+		<i class="fas fa-fast-forward fas2"id="i-forward"></i>
+	</button>
+</div>
+
+<!--<p>This PID: {this_pid}</p>-->
+
 
 <style>
 	.classroom-section-selector {
@@ -159,5 +332,42 @@
 	.classroom-section-selector:hover {
 		cursor: pointer;
 		fill: lightgray;
+	}
+
+	#heatmap-scatterplot circle {
+		transition: r 0.2s;
+	}
+
+	
+	.view-icons {
+		display:flex;
+		justify-content:center;
+	}
+
+	.view-icons button {
+		font-size:30px;
+		background-color: transparent;
+		width: 50px;
+		margin: 5px 0;
+		border: none;
+		margin: 0;
+		cursor: pointer;
+	}
+
+	.cancel-button {
+		fill: grey;
+		opacity: 0%;
+		height: 70px;
+		width: 70px;
+		cursor: pointer;
+	}
+
+	.cancel-button:hover {
+		opacity: 35%;
+	}
+
+	.cancel-button-icon {
+		fill: red;
+		font-size:30px;
 	}
 </style>
