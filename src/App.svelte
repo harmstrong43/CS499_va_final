@@ -488,7 +488,7 @@
 			<div id="COPUS-bars" class="view-panel">
 				<div class="view-title">COPUS Data</div>
 				{#if lectureActivity !== undefined}
-					<Copusbars colorScale = {colorScale}
+					<Copusbars colorScale = {colorScale} selectedData={selectedData}
 					 lectureActivity = {lectureActivity} questionAnsweringActivity = {questionAnsweringActivity}
 					 questionAskingActivity = {questionAskingActivity} otherActivity = {otherActivity} selectedLectureNumbers={selectedLectureNumbers}
 					 bind:bars={bars} bind:hovered={hovered} bind:currentIndex={currentIndex} />
