@@ -94,7 +94,7 @@
 
 <div>
     <h4 style="margin:0;">Breakdown Per Quarter of Lecture</h4>           
-    <svg style="height: {sliceBarChartHeight + 60}; padding: 20px">
+    <svg style="height: 260px; padding: 20px">
         <g id="per-quarter-bar-chart" transform="translate(0,10)">
            <text style="font-size:0.5em; color: grey;" transform="translate(10, {sliceBarChartHeight / 1.35}) rotate(270)">Percentage of total time spend in quadrant.</text>
             <g class="chart-axes" transform="translate(20,0)">
