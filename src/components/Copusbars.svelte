@@ -1,7 +1,9 @@
 <script>
     import { scaleLinear } from "d3-scale";
+import { afterUpdate } from "svelte";
 
     export let colorScale;
+    export let selectedData;
     export let lectureActivity;
 	export let questionAskingActivity;
     export let questionAnsweringActivity;
@@ -38,9 +40,37 @@
     //sums an array
     function sum(arr) {
 		return arr.reduce(function (a, b) {
-			return a + b;
+            if(a === NaN){
+                a = 0;
+            }
+            if(b === NaN)
+            {
+			    b = 0;
+            }
+            return a + b;
 		}, 0);
 	}
+
+    function getBarLength() {
+
+    }
+    afterUpdate(() => {
+        lectureActivity = selectedData.map(x => x['data'].map(lecturing => lecturing['lecturing']));
+        console.log("selected Data: ", selectedData);
+        console.log("Lecture Activity: ", lectureActivity);
+		questionAskingActivity = selectedData.map(x => x['data'].map(questions => questions['asking_questions']));
+		questionAnsweringActivity = selectedData.map(x => x['data'].map(answers => answers['answering_questions']));
+		otherActivity = selectedData.map(x => x['data'].map(answers => answers['other']));
+        lectureActivityArr = lectureActivity.map(x => x.length === 0 ? 0 : sum(x) / x.length);
+        lectureActivityArr.push(sum(lectureActivityArr) / selectedData.length);
+        questionAskingActivityArr = questionAskingActivity.map(x => x.length === 0 ? 0 : sum(x) / x.length);	
+        questionAskingActivityArr.push(sum(questionAskingActivityArr) / selectedData.length);
+        questionAnsweringActivityArr = questionAnsweringActivity.map(x => x.length === 0 ? 0 : sum(x) / x.length);	
+        questionAnsweringActivityArr.push(sum(questionAnsweringActivityArr) / selectedData.length);
+        otherActivityArr =  otherActivity.map(x => x.length === 0 ? 0 : sum(x) / x.length);		
+        otherActivityArr.push(sum(otherActivityArr) / selectedData.length);
+        console.log("Activity: ", lectureActivityArr);
+    })
 
     percentTimeScale = scaleLinear()
     .domain([
@@ -50,15 +80,6 @@
     .range([0, yAxisLength]);
 
     percentTimeTicks = percentTimeScale.ticks(numTicks);
-
-    lectureActivityArr = lectureActivity.map(x => sum(x) / x.length);
-    lectureActivityArr.push(sum(lectureActivityArr) / lectureActivityArr.length);
-    questionAskingActivityArr = questionAskingActivity.map(x => sum(x) / x.length);	
-    questionAskingActivityArr.push(sum(questionAskingActivityArr) / questionAskingActivityArr.length);
-    questionAnsweringActivityArr = questionAnsweringActivity.map(x => sum(x) / x.length);	
-    questionAnsweringActivityArr.push(sum(questionAnsweringActivityArr) / questionAnsweringActivityArr.length);
-    otherActivityArr =  otherActivity.map(x => sum(x) / x.length);		
-    otherActivityArr.push(sum(otherActivityArr) / otherActivityArr.length);
 
 </script>
 
@@ -80,8 +101,8 @@
                 <g id = "bars" transform = "translate({(index + 2) * barPadding}, {(chartHeight - 2 * yAxisPadding)})">
                     <rect
                         bind:this = {bars.lecture[index]}
-                        x = 0 y= {-1 * percentTimeScale(lectureActivityArr[index])}
-                        height = {percentTimeScale(lectureActivityArr[index])}
+                        x = 0 y= {selectedLectureNumbers.includes(index) ? -1 * percentTimeScale(lectureActivityArr[selectedLectureNumbers.indexOf(index)]) : 0}
+                        height = {selectedLectureNumbers.includes(index) ? percentTimeScale(lectureActivityArr[selectedLectureNumbers.indexOf(index)]) : 0}
                         width = {barWidth}
                         style = "{selectedLectureNumbers.includes(index) ? "fill: " + colorScale(index) : "display: none"}"
                         on:mouseenter={() => {
@@ -96,8 +117,8 @@
 
                     <rect 
                         bind:this = {bars.asking[index]}
-                        x = {barSections * 1} y= {-1 * percentTimeScale(questionAskingActivityArr[index])}
-                        height = {percentTimeScale(questionAskingActivityArr[index])}
+                        x = {barSections * 1} y= {selectedLectureNumbers.includes(index) ? -1 * percentTimeScale(questionAskingActivityArr[selectedLectureNumbers.indexOf(index)]) : 0}
+                        height = {selectedLectureNumbers.includes(index) ? percentTimeScale(questionAskingActivityArr[selectedLectureNumbers.indexOf(index)]) : 0}
                         width = {barWidth}
                         style = "{selectedLectureNumbers.includes(index) ? "fill: " + colorScale(index) : "display: none"}"
                         on:mouseenter={() => {
@@ -112,8 +133,8 @@
 
                     <rect 
                         bind:this = {bars.answering[index]}
-                        x = {barSections * 2} y= {-1 * percentTimeScale(questionAnsweringActivityArr[index])}
-                        height = {percentTimeScale(questionAnsweringActivityArr[index])}
+                        x = {barSections * 2} y= {selectedLectureNumbers.includes(index) ? -1 * percentTimeScale(questionAnsweringActivityArr[selectedLectureNumbers.indexOf(index)]) : 0}
+                        height = {selectedLectureNumbers.includes(index) ? percentTimeScale(questionAnsweringActivityArr[selectedLectureNumbers.indexOf(index)]) : 0}
                         width = {barWidth}
                         style = "{selectedLectureNumbers.includes(index) ? "fill: " + colorScale(index) : "display: none"}"
                         on:mouseenter={() => {
@@ -128,8 +149,8 @@
 
                     <rect 
                         bind:this = {bars.other[index]}
-                        x = {barSections * 3} y= {-1 * percentTimeScale(otherActivityArr[index])}
-                        height = {percentTimeScale(otherActivityArr[index])}
+                        x = {barSections * 3} y= {selectedLectureNumbers.includes(index) ? -1 * percentTimeScale(otherActivityArr[selectedLectureNumbers.indexOf(index)]) : 0}
+                        height = {selectedLectureNumbers.includes(index) ? percentTimeScale(otherActivityArr[selectedLectureNumbers.indexOf(index)]) : 0}
                         width = {barWidth}
                         style = "{selectedLectureNumbers.includes(index) ? "fill: " + colorScale(index) : "display: none"}"
                         on:mouseenter={() => {
@@ -146,43 +167,43 @@
             <g id = "average-lines" transform = "translate({2 * barPadding}, {(chartHeight - 2 * yAxisPadding)})">
 
                 <rect class = "average-padding"
-                    x = "0" y = "{-1 * percentTimeScale(lectureActivityArr[4]) - 2}"
+                    x = "0" y = "{-1 * percentTimeScale(lectureActivityArr.slice(-1)[0]) - 2}"
                     width = "{4 * (barPadding) - 3}" height = 4
                 />
 
                 <line class = "averages"
                     x1 = "0" x2 = "{4 * (barPadding) - 3}"
-                    y1= "{-1 * percentTimeScale(lectureActivityArr[4])}" y2 = "{-1 * percentTimeScale(lectureActivityArr[4])}"
+                    y1= "{-1 * percentTimeScale(lectureActivityArr.slice(-1)[0])}" y2 = "{-1 * percentTimeScale(lectureActivityArr.slice(-1)[0])}"
                 />
 
                 <rect class = "average-padding"
-                    x = "{barSections * 1}" y = "{-1 * percentTimeScale(questionAskingActivityArr[4]) - 2}"
+                    x = "{barSections * 1}" y = "{-1 * percentTimeScale(questionAskingActivityArr.slice(-1)[0]) - 2}"
                     width = "{4 * (barPadding) - 3}" height = 4
                 />
 
                 <line class = "averages"
                     x1 = "{barSections * 1}" x2 = {(4 * barPadding) + (barSections * 1) - 3}
-                    y1 = {-1 * percentTimeScale(questionAskingActivityArr[4])} y2 = {-1 * percentTimeScale(questionAskingActivityArr[4])}
+                    y1 = {-1 * percentTimeScale(questionAskingActivityArr.slice(-1)[0])} y2 = {-1 * percentTimeScale(questionAskingActivityArr.slice(-1)[0])}
                 />
 
                 <rect class = "average-padding"
-                    x = "{barSections * 2}" y = "{-1 * percentTimeScale(questionAnsweringActivityArr[4]) - 2}"
+                    x = "{barSections * 2}" y = "{-1 * percentTimeScale(questionAnsweringActivityArr.slice(-1)[0]) - 2}"
                     width = "{4 * (barPadding) - 3}" height = 4
                 />
 
                 <line class = "averages"
                     x1 = "{barSections * 2}" x2 = "{(4 * barPadding) + (barSections * 2) - 3}"
-                    y1 = {-1 * percentTimeScale(questionAnsweringActivityArr[4])} y2 = {-1 * percentTimeScale(questionAnsweringActivityArr[4])}
+                    y1 = {-1 * percentTimeScale(questionAnsweringActivityArr.slice(-1)[0])} y2 = {-1 * percentTimeScale(questionAnsweringActivityArr.slice(-1)[0])}
                 />
 
                 <rect class = "average-padding"
-                    x = "{barSections * 3}" y = "{-1 * percentTimeScale(otherActivityArr[4]) - 2}"
+                    x = "{barSections * 3}" y = "{-1 * percentTimeScale(otherActivityArr.slice(-1)[0]) - 2}"
                     width = "{4 * (barPadding) - 3}" height = 4
                 />
 
                 <line class = "averages"
                     x1 = "{barSections * 3}" x2 = "{(4 * barPadding) + (barSections * 3) - 3}"
-                    y1 = {-1 * percentTimeScale(otherActivityArr[4])} y2 = {-1 * percentTimeScale(otherActivityArr[4])}
+                    y1 = {-1 * percentTimeScale(otherActivityArr.slice(-1)[0])} y2 = {-1 * percentTimeScale(otherActivityArr.slice(-1)[0])}
                 />
             </g>
             <g id = "bar-labels" transform = "translate({(4) * barPadding}, {(chartHeight - (7/4) * yAxisPadding)})">
@@ -228,5 +249,8 @@
 	svg {
 		margin: 5px;
 	}
+    rect {
+        transition: y 1.5s, height 1.5s;
+    }
 
 </style>
