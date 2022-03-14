@@ -12,6 +12,7 @@
 
 	import Heatmap from "./components/Heatmap.svelte"
 	import PerQuarterBarChart from "./components/PerQuarterBarChart.svelte"
+	//import Timeline from "./components/Timeline.svelte"
 	//import SliceBarCharts from "./components/SliceBarCharts.svelte"
 	
 	let lectures = [];
@@ -206,6 +207,10 @@
 					<i class="fas fa-fast-forward"id="i-forward"></i>
 				</div>
 			</div>
+
+			<!--<Timeline {lectures} {selectedLectureNumbers} range={dataRange} />-->
+
+
 		</div>
 		<div id="chart-view" class="view-panel">
 			<div class="view-title">Instructor Statistics</div>
