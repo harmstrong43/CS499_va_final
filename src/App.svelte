@@ -9,17 +9,16 @@
 	import { onMount } from "svelte";
 	import { scaleLinear, scaleOrdinal } from "d3-scale";
 	import { schemeCategory10 } from "d3-scale-chromatic";
-	import Lenpixel from "./Lenpixel.svelte";
-	import Distance from "./Distance.svelte";
-	import Copusbars from "./Copusbars.svelte";
 	import { toggle_class } from "svelte/internal";
 
 	import Heatmap from "./components/Heatmap.svelte"
 	import PerQuarterBarChart from "./components/PerQuarterBarChart.svelte"
+	import Lenpixel from "./components/Lenpixel.svelte";
+	import Distance from "./components/Distance.svelte";
+	import Copusbars from "./components/Copusbars.svelte";
 	//import SliceBarCharts from "./components/SliceBarCharts.svelte"	
 	
 	let lectures = [];
-	let instructor_numbers = [0, 1, 2, 3];
 	let instructor_names = ["Instructor A", "Instructor B (Lecture 1)", "Instructor B (Lecture 2)", "Instructor B (Lecture 3)"];
 	let pixelID;
 	let lenPixel;
@@ -146,7 +145,7 @@
 
 	$:{
 		if(clicked > 0 && legendLabels != undefined){
-			if(legendLabels.filter(x => x.classList.contains("unclicked")).length !== instructors.length) {
+			if(legendLabels.filter(x => x.classList.contains("unclicked")).length !== selectedLectureNumbers.length) {
 				//make unselected ones lighter
 				legendLabels.filter(x => x.classList.contains("unclicked")).forEach(y => {
 					highlightCharts(legendLabels.indexOf(y), 0.2, 0.2, 0.2);
@@ -166,7 +165,7 @@
 	}
 
 	$: {
-		if(lenLines !== undefined) {
+		if(lenLines !== undefined && selectedLectureNumbers !== undefined) {
 			if(hovered === true){
 				//highlight hovered instructor
 				highlightCharts(currentIndex, 0.8, 0.6, 1);
@@ -180,14 +179,14 @@
 			}
 			else {
 				//if at least one is clicked
-				if(legendLabels.filter(x => x.classList.contains("unclicked")).length !== instructors.length) {
+				if(legendLabels.filter(x => x.classList.contains("unclicked")).length !== selectedLectureNumbers.length) {
 					legendLabels.filter(x => x.classList.contains("unclicked")).forEach(y => {
 					//make ones that aren't clicked lighter
 					highlightCharts(legendLabels.indexOf(y), 0.2, 0.2, 0.2)
 					})
 				}
 				//if nothing is clicked
-				else if (legendLabels.filter(x => x.classList.contains("unclicked")).length === instructors.length){
+				else if (legendLabels.filter(x => x.classList.contains("unclicked")).length === selectedLectureNumbers.length){
 					//Highlight Everthing
 					legendLabels.filter(x => x.classList.contains("unclicked")).forEach(y => {
 						highlightCharts(legendLabels.indexOf(y), 0.8, 0.6, 1);
@@ -242,13 +241,11 @@
 
 		//Declare pixelID, lenPixel, and distancePixel (for readability)
 		pixelID = lectures.filter(lecture => lecture.copus === false).map(movement => movement['data'].map(rows => rows['PID']));
+		console.log("PixelID: ", pixelID);
 		lenPixel = lectures.filter(lecture => lecture.copus === false).map(movement => movement['data'].map(rows => rows['Len [pixel]']));
 		distancePixel = lectures.filter(lecture => lecture.copus === false).map(movement => movement['data'].map(rows => rows['D2P [pixel]']));
 
 		console.log("Lectures: ", lectures);
-
-		colorScale = scaleOrdinal(schemeCategory10)
-		.domain(instructors);
 
 		//store activity types as their own variables
 		lectureActivity = lectures.filter(lecture => lecture.copus === false).map(x => x['data'].map(lecturing => lecturing['lecturing']));
@@ -257,6 +254,7 @@
 		otherActivity = lectures.filter(lecture => lecture.copus === false).map(x => x['data'].map(answers => answers['other']));
 		instructors = Array.from(instructors)
 		console.log("Lectures: ", lectures)
+		console.log("Instructors: ", instructors);
 
 		
 
@@ -264,6 +262,9 @@
 		selectedData = []
 		selectedInstructors = instructors
 		selectedLectureNumbers=[0,1,2,3]
+
+		colorScale = scaleOrdinal(schemeCategory10)
+		.domain(selectedLectureNumbers);
 		
 	});
 
@@ -430,7 +431,7 @@
 		lectures={lectures}
 		selectedData={selectedData}
 		selectedSection={selectedSection}
-		selecetdLectureNumbers={selectedLectureNumbers} />
+		selectedLectureNumbers={selectedLectureNumbers} />
 	-->
 	</div>
 
@@ -472,11 +473,11 @@
 					<svg id = "legend" width="175px" height = "80px">
 						<g id = "legend-lines" transform = "translate(10, 15)">
 							{#if colorScale !== undefined}
-								{#each instructors as instructor}
+								{#each selectedLectureNumbers as instructor}
 									<line id="legend-instructor-{instructor}"
 									class = "legend-line" style = "stroke: {colorScale(instructor)}"
-									x2 = "20" y1 = {(60 / instructors.length) * instructor} y2 = {(60 / instructors.length) * instructor} />
-									<text class="legend-labels unclicked" bind:this={legendLabels[instructor]} x = "25" y= {(60 / instructors.length) * instructor + 3}
+									x2 = "20" y1 = {(60 / selectedLectureNumbers.length) * instructor} y2 = {(60 / selectedLectureNumbers.length) * instructor} />
+									<text class="legend-labels unclicked" bind:this={legendLabels[instructor]} x = "25" y= {(60 / selectedLectureNumbers.length) * instructor + 3}
 										on:click={() => {
 												legendLabels[instructor].classList.toggle("unclicked")
 												currentIndex = instructor;
