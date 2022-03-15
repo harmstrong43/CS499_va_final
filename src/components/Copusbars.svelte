@@ -164,35 +164,38 @@ import { afterUpdate } from "svelte";
                 {#if lectureActivityArr.length > 0}
                     <rect class = "average-padding"
                         x = "0" y = "{-1 * percentTimeScale(lectureActivityArr.slice(-1)[0]) - 2}"
-                        width = "{4 * (barPadding) - 3}" height = 4
+                        width = "{4 * (barPadding) - 3}" height = "4"
                     />
                 {/if}
 
                 {#if lectureActivityArr.length > 0}
-                    <line class = "averages"
-                        x1 = "0" x2 = "{4 * (barPadding) - 3}"
-                        y1= "{-1 * percentTimeScale(lectureActivityArr.slice(-1)[0])}" y2 = "{-1 * percentTimeScale(lectureActivityArr.slice(-1)[0])}"
+                    <rect class = "averages"
+                        x = "0" 
+                        y = "{-1 * percentTimeScale(lectureActivityArr.slice(-1)[0])}"
+                        width = "{4 * (barPadding) - 3}" height = "1"
                     />
                 {/if}
 
                 {#if questionAnsweringActivityArr.length > 0}
                     <rect class = "average-padding"
                         x = "{barSections * 1}" y = "{-1 * percentTimeScale(questionAskingActivityArr.slice(-1)[0]) - 2}"
-                        width = "{4 * (barPadding) - 3}" height = 4
+                        width = "{4 * (barPadding) - 3}" height = "4"
                     />
-                    <line class = "averages"
-                        x1 = "{barSections * 1}" x2 = {(4 * barPadding) + (barSections * 1) - 3}
-                        y1 = {-1 * percentTimeScale(questionAskingActivityArr.slice(-1)[0])} y2 = {-1 * percentTimeScale(questionAskingActivityArr.slice(-1)[0])}
+                    <rect class = "averages"
+                        x = "{barSections * 1}" 
+                        y = {-1 * percentTimeScale(questionAskingActivityArr.slice(-1)[0])}
+                        width = "{4 * (barPadding) - 3}" height = "1"
                     />
                     <rect class = "average-padding"
                         x = "{barSections * 2}" y = "{-1 * percentTimeScale(questionAnsweringActivityArr.slice(-1)[0]) - 2}"
-                        width = "{4 * (barPadding) - 3}" height = 4
+                        width = "{4 * (barPadding) - 3}" height = "4"
                     />
 
-                <line class = "averages"
-                    x1 = "{barSections * 2}" x2 = "{(4 * barPadding) + (barSections * 2) - 3}"
-                    y1 = {-1 * percentTimeScale(questionAnsweringActivityArr.slice(-1)[0])} y2 = {-1 * percentTimeScale(questionAnsweringActivityArr.slice(-1)[0])}
-                />
+                    <rect class = "averages"
+                        x = "{barSections * 2}"
+                        y = {-1 * percentTimeScale(questionAnsweringActivityArr.slice(-1)[0])}
+                        width = "{4 * (barPadding) - 3}" height = "1"
+                    />
 
                 {/if}
                 
@@ -202,9 +205,10 @@ import { afterUpdate } from "svelte";
                         width = "{4 * (barPadding) - 3}" height = 4
                     />
 
-                    <line class = "averages"
-                        x1 = "{barSections * 3}" x2 = "{(4 * barPadding) + (barSections * 3) - 3}"
-                        y1 = {-1 * percentTimeScale(otherActivityArr.slice(-1)[0])} y2 = {-1 * percentTimeScale(otherActivityArr.slice(-1)[0])}
+                    <rect class = "averages"
+                        x = "{barSections * 3}"
+                        y = {-1 * percentTimeScale(otherActivityArr.slice(-1)[0])}
+                        width = "{4 * (barPadding) - 3}" height = "1"
                     />
                 {/if}
             </g>
@@ -231,9 +235,8 @@ import { afterUpdate } from "svelte";
 		stroke: gray;
 		stroke-width: 2;
 	}
-	line.averages {
-		stroke: black;
-		stroke-width: 0.8;
+	rect.averages {
+		fill: black;
 		opacity: 1;
 	}
 	rect.average-padding {
