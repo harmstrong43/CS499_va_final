@@ -448,7 +448,18 @@
 
 		</div>
 
-		
+		<!--
+
+		<div id="main-section" style="width: 450px;">
+			<div id="Slice-bars" class="view-panel">
+				<div class="view-title">COPUS Data</div>
+				{#if lectureActivity !== undefined}
+					<SliceBarCharts {colorScale} {selectedData} {lectures} {selectedLectureNumbers} {selectedSections}/>
+				{/if}
+			</div>
+		</div>
+
+		-->
 		<div id="chart-view" class="view-panel">
 			<div class="view-title">Instructor Statistics</div>
 			<div id="view-list">

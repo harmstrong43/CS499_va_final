@@ -30,7 +30,7 @@
     });
 
     afterUpdate(() => {
-        quarter_bars = []
+        let new_quarter_bars = []
 
         /*
 
@@ -60,10 +60,11 @@
             }
 
             //the length each bar should be
-            quarter_bars.push({
+            new_quarter_bars.push({
                 length: getBarLength(quarterBins[i])
             })
         }
+        quarter_bars = new_quarter_bars
         //console.log(selectedData)
         //console.log(quarter_bars)
     })
