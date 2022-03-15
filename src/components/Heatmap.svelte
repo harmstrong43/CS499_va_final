@@ -277,9 +277,8 @@
 		
 		{#if this_pid !== undefined}
 			<!--<text class="cancel-button-icon" x=25 y=45>X</text>-->
-			<foreignObject x="15" y="15" width="50" height="50">
-				<i class="fas fa-undo"></i>
-			</foreignObject>
+			<image x="10" y="10" width="50" height="50" href="static/images/redx.png" >
+			</image>
 			
 			<rect class="cancel-button" on:click="{() => stopButtonClick()}" />
 		{/if}
