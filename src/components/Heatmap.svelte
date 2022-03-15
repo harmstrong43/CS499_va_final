@@ -5,10 +5,11 @@
 
 	
     export let lectures;
-    export let selectedSection = undefined;
+    export let selectedSections = new Set()
     export let selectedLectureNumbers = [];
     export var getSelectedData; 
 	export let heatmapRange;
+	export let colorScale;
     
 	const numPrevPoints = 10
 	const animationSpeed = 200
@@ -27,8 +28,7 @@
 
 	let pause_animation
 
-	let animationColorScale
-	let lecturesColorScale
+	let selectedSectionsLocal = []
 
 
     onMount(async () => {
@@ -41,14 +41,6 @@
 			.domain(heatmapRange.y)
 			//.domain([heatmapStartingPoint.y-1000,heatmapStartingPoint.y + 1000])
 			.range([0,heatmapHeight])
-		
-		//this isn't used
-		animationColorScale = scaleOrdinal(schemeReds)
-			.domain([numPrevPoints, 0])
-
-		lecturesColorScale = scaleOrdinal(schemeCategory10)
-			.domain(lectures.map((lect, idx) => idx))
-
 		
 
     });
@@ -64,6 +56,9 @@
 		})
 
 		//console.log(greatest_pid)
+		
+		//to re-render component when selectedSections changes
+		selectedSectionsLocal = selectedSections
 	})
 
 	function animate(start_pid) {
@@ -174,6 +169,18 @@
 		}, animationSpeed + 2)
 	}
 
+	//when a section is clicked, toggle whether it is selected
+	function sectionClick(section_num) {
+		if (selectedSections.has(section_num))
+			selectedSections.delete(section_num)
+		else 
+			selectedSections.add(section_num)
+
+		selectedSectionsLocal = selectedSections
+		getSelectedData()
+	}
+
+
 </script>
 
 <div style="height:100%;" bind:clientWidth={heatmapWidth} bind:clientHeight={heatmapHeight}>
@@ -191,7 +198,7 @@
 										this_pid !== undefined 
 										? this_pid - datapoint["PID"] >= 0 && this_pid - datapoint["PID"] <= 10
 											//? `opacity: 100%; fill: ${animationColorScale(this_pid - datapoint["PID"])}`
-											? `opacity: ${100 - ((this_pid - datapoint["PID"]) * 10)}%; fill: ${lecturesColorScale(selectedLectureNum)}`
+											? `opacity: ${100 - ((this_pid - datapoint["PID"]) * 10)}%; fill: ${colorScale(selectedLectureNum)}`
 											
 											: "opacity: 30%; fill: lightgray"
 										: "opacity: 30%; fill: blue;"
@@ -216,7 +223,7 @@
 									y1={heatmapHeight - heatmapYScale(datapoint["y [pixel]"])}
 									y2={heatmapHeight - heatmapYScale(lectures[selectedLectureNum].data[idx - 1]["y [pixel]"])}
 									opacity="{100 - ((this_pid - datapoint["PID"]) * 10)}%"
-									stroke= {lecturesColorScale(selectedLectureNum)}
+									stroke= {colorScale(selectedLectureNum)}
 									stroke-width=1
 								/>
 							{/if}
@@ -229,18 +236,15 @@
 
 		{#if heatmapHeight !== undefined && heatmapWidth !== undefined}
 			
-			<g id="classroom-section-selectors-box">
+			<g id="classroom-section-selectors-container">
 				<rect
 					class="classroom-section-selector"
 					height="{heatmapHeight / 2}"
 					width="{heatmapWidth / 2}"
 					x="{heatmapWidth / 2}"
 					y="0"
-					fill="{selectedSection !== undefined && selectedSection === "Q1" ? "#CDCDCD" : "transparent"}"
-					on:click="{() => {
-						selectedSection = "Q1";
-						getSelectedData()
-					}}" />
+					fill="{selectedSectionsLocal.has(0) ? "darkgrey" : "transparent"}"
+					on:click="{() => sectionClick(0)}" />
 
 				<rect
 					class="classroom-section-selector"
@@ -248,11 +252,8 @@
 					width="{heatmapWidth / 2}"
 					x="{heatmapWidth / 2}"
 					y="{heatmapHeight / 2}"
-					fill="{selectedSection !== undefined && selectedSection === "Q2" ? "#CDCDCD" : "transparent"}"
-					on:click="{() => {
-						selectedSection = "Q2";
-						getSelectedData()
-					}}" />
+					fill="{selectedSectionsLocal.has(1) ? "darkgrey" : "transparent"}"
+					on:click="{() => sectionClick(1)}" />
 
 				<rect
 					class="classroom-section-selector"
@@ -260,11 +261,8 @@
 					width="{heatmapWidth / 2}"
 					x="0"
 					y="{heatmapHeight / 2}"
-					fill="{selectedSection !== undefined && selectedSection === "Q3" ? "#CDCDCD" : "transparent"}"
-					on:click="{() => {
-						selectedSection = "Q3";
-						getSelectedData()
-					}}" />
+					fill="{selectedSectionsLocal.has(2) ? "darkgrey" : "transparent"}"
+					on:click="{() => sectionClick(2)}" />
 
 				<rect
 					class="classroom-section-selector"
@@ -272,16 +270,16 @@
 					width="{heatmapWidth / 2}"
 					x="0"
 					y="0"
-					fill="{selectedSection !== undefined && selectedSection === "Q4" ? "#CDCDCD" : "transparent"}"
-					on:click="{() => {
-						selectedSection = "Q4";
-						getSelectedData()
-					}}" />
+					fill="{selectedSectionsLocal.has(3) ? "darkgrey" : "transparent"}"
+					on:click="{() => sectionClick(3)}" />
 			</g>
 		{/if}
 		
 		{#if this_pid !== undefined}
-			<text class="cancel-button-icon" x=25 y=45>X</text>
+			<!--<text class="cancel-button-icon" x=25 y=45>X</text>-->
+			<image x="10" y="10" width="50" height="50" href="static/images/redx.png" >
+			</image>
+			
 			<rect class="cancel-button" on:click="{() => stopButtonClick()}" />
 		{/if}
 
@@ -323,7 +321,6 @@
 
 <!--<p>This PID: {this_pid}</p>-->
 
-
 <style>
 	.classroom-section-selector {
 		opacity: 40%;
@@ -331,7 +328,7 @@
 	}
 	.classroom-section-selector:hover {
 		cursor: pointer;
-		fill: lightgray;
+		fill: grey;
 	}
 
 	#heatmap-scatterplot circle {
@@ -369,5 +366,11 @@
 	.cancel-button-icon {
 		fill: red;
 		font-size:30px;
+	}
+	.fa-undo
+	{
+		font-size:30px;
+		color: black;
+		z-index:4;
 	}
 </style>

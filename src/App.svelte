@@ -50,10 +50,13 @@
 
 	const copusInterval = 120;
 
-	let instructors =  new Set()
+	let instructors =  []
 	
-	let selectedData;
-	let selectedSection;
+	let selectedData =[];
+
+	//quarters of classroom selected
+	let selectedSections = new Set();
+	const allSections = [0,1,2,3]
 	
 	let selectedLectureNumbers;
 	let selectedInstructors;
@@ -202,9 +205,14 @@
 	}
 
 	onMount(async () => {
+		
+		//store a list of all the different instructors
+		let unique_instructors = new Set()
+
 
 		//Loop through all the data files stored in filenames global variable and load them
 		for(let i = 0; i < filenames.length; i++) {
+
 			let fetched = await fetch(filenames[i])
 			let fetched_json = await fetched.json();
 
@@ -221,9 +229,11 @@
 				data: fetched_json
 			})
 
-			
-			instructors.add(instructor_name);
+			//This will not allow duplicates in set
+			unique_instructors.add(instructor_name);
 		};
+
+		instructors = Array.from(unique_instructors)
 
 		//Loop through non-COPUS objects, adding relevant COPUS actions
 		//Count gives the frame number
@@ -250,7 +260,7 @@
 		lenPixel = lectures.filter(lecture => lecture.copus === false).map(movement => movement['data'].map(rows => rows['Len [pixel]']));
 		distancePixel = lectures.filter(lecture => lecture.copus === false).map(movement => movement['data'].map(rows => rows['D2P [pixel]']));
 
-		console.log("Lectures: ", lectures);
+		//console.log("Lectures: ", lectures);
 
 		//store activity types as their own variables
 		lectureActivity = lectures.filter(lecture => lecture.copus === false).map(x => x['data'].map(lecturing => lecturing['lecturing']));
@@ -263,37 +273,44 @@
 
 		
 
-		//start out with all instructors and lectures selected
-		selectedData = []
+		//start out with all instructors, quarters, and lectures selected
 		selectedInstructors = instructors
 		selectedLectureNumbers=[0,1,2,3]
+
+		//add all sections to selectedSections
+		allSections.forEach(i => selectedSections.add(i)) 
+
+
+		//all non-copus data selected to start
+		let temp_data = []
+		lectures.forEach((lect, idx) => {
+			if (lect.copus === false) {
+				temp_data.push({
+					lecture_num: idx,
+					data: lect.data,
+					instructor_name: lect.instructor_name,
+					copus: lect.copus
+				})
+			}
+		})
+
+		selectedData = temp_data
 
 		colorScale = scaleOrdinal(schemeCategory10)
 		.domain(selectedLectureNumbers);
 		
 	});
 
-	//return subset of lectures that only contains points within coordinate bounds
-	function filterSelectedData(xmin, xmax, ymin, ymax) {
-		let data = []
-		selectedLectureNumbers.forEach((num) => {
-			if (selectedInstructors.includes(lectures[num].instructor_name)) {
-				data.push({
-					instructor_name: lectures[num].instructor_name,
-					lecture_num: num,
-					data: [...lectures[num].data.filter((e) => {
-					return e["x [pixel]"] > xmin 
-						&&  e["x [pixel]"] < xmax 
-						&& e["y [pixel]"] > ymin 
-						&& e["y [pixel]"] < ymax
-					})]
-				})
-			}
-		})		
-		return data
-		//getTotalDistance()
+	function getSectionData(num, xmin, xmax, ymin, ymax) {
+		 return lectures[num].data.filter((e) => {
+			return e["x [pixel]"] > xmin 
+				&&  e["x [pixel]"] < xmax 
+				&& e["y [pixel]"] > ymin 
+				&& e["y [pixel]"] < ymax
+		})
 	}
 
+	//find the midpoint of data
 	function setStartingPoint(){
 		return {
 			x: dataRange.x[1]/2,
@@ -303,20 +320,42 @@
 
 	//When data is filtered (i.e. quadrant, lecture, or instructor checked or unchecked)
 	function getSelectedData(){
-		//console.log("Selected lecture:", selectedLectureNumbers, "Selected section:", selectedSection)
+		console.log("Selected lecture:", selectedLectureNumbers, "Selected sections:", selectedSections)
 		let starting_point = setStartingPoint()
-	
-		selectedData = []
 
-				//console.log("Starting Point:", starting_point)
-				if (selectedSection =="Q1")
-			selectedData.push(...filterSelectedData(starting_point.x, Infinity, starting_point.y, Infinity))
-		if (selectedSection == "Q2")
-			selectedData.push(...filterSelectedData(starting_point.x, Infinity, Number.NEGATIVE_INFINITY, starting_point.y))
-		if (selectedSection == "Q3")
-			selectedData.push(...filterSelectedData(Number.NEGATIVE_INFINITY, starting_point.x, Number.NEGATIVE_INFINITY, starting_point.y))
-		if (selectedSection == "Q4")
-			selectedData.push(...filterSelectedData(Number.NEGATIVE_INFINITY, starting_point.x, starting_point.y, Infinity))
+
+		let this_data;
+		let new_selected_data = []
+		
+
+		//for each lecture, create a new object of same structure whose data: member is only the selected data from that instructor
+		selectedLectureNumbers.forEach(num => {
+			this_data = []
+
+			//console.log("Starting Point:", starting_point)
+			if (selectedSections.has(0)){
+				this_data = this_data.concat(getSectionData(num, starting_point.x,Infinity, starting_point.y, Infinity))
+			}
+			if (selectedSections.has(1)){
+				this_data = this_data.concat(getSectionData(num, starting_point.x, Infinity, Number.NEGATIVE_INFINITY, starting_point.y))
+			}
+			if (selectedSections.has(2)){
+				this_data = this_data.concat(getSectionData(num, Number.NEGATIVE_INFINITY, starting_point.x, Number.NEGATIVE_INFINITY, starting_point.y))
+			}
+			if (selectedSections.has(3)){
+				this_data = this_data.concat(getSectionData(num, Number.NEGATIVE_INFINITY, starting_point.x, starting_point.y, Infinity))
+			}
+			
+			new_selected_data.push({
+				instructor_name: lectures[num].instructor_name,
+				lecture_num: num,
+				data: this_data,
+				copus: lectures[num].copus
+			})
+		})
+
+		selectedData = new_selected_data
+		//console.log("New Selected Data: ",selectedData)
 	}
 
 
@@ -328,179 +367,162 @@
 </script>
 
 <main>
+	<div id  = "right-side" style="width: 180px;">
+		<div id = "legend-frame" class="view-panel" style="height:auto;width:200px;">
+			<div class = "view-title">Legend</div>
+				<svg id = "legend" width="175px" height = "80px">
+					<g id = "legend-lines" transform = "translate(10, 15)">
+						{#if colorScale !== undefined}
+							{#each instructorNumbers as instructor}
+							{console.log("included instructor: ", selectedLectureNumbers.includes(instructor))}
+								<line id="legend-instructor-{instructor}"
+								class = "legend-line" style = "{selectedLectureNumbers.includes(instructor) ? "stroke: " + colorScale(instructor) : "display: none"}"
+								x2 = "20" y1 = {(60 / instructorNumbers.length) * instructor} y2 = {(60 / instructorNumbers.length) * instructor} />
+								<text 
+								class="legend-labels unclicked" 
+								style = "{selectedLectureNumbers.includes(instructor) ? "" : "display: none"}"
+								bind:this={legendLabels[instructor]} 
+								x = "25" y= {(60 / instructorNumbers.length) * instructor + 3}
+									on:click={() => {
+											legendLabels[instructor].classList.toggle("unclicked")
+											currentIndex = instructor;
+											clicked += 1;}}
+								>
+									{instructorNames[instructor]}</text>
+							{/each}
+						{/if}
+					</g>
+				</svg>
+		</div>
+
+	</div>
+
 	<h1>Visual Analytics Final Project</h1>
 	<h2>Instructor Movement Data Visualization</h2>
-	
 
-	
+	<div id="all-content">
 
-	<div id="container">
-		<div id="video-view" class="view-panel">
-
-			<div class="view-title">Instructor Path Player</div>
-
-			<div class="view-anim">
-				<div id="instructor-select">
-					<p id="instructor-select-title">Instructors
-						<i class="fas fa-angle-down"id="i-dropdown"></i>
-					</p>
-					<p id="instructor-select-id">{selectedInstructors}</p>
-					<div class="dropdown">
-						<div class="dropdown-content" id="dropdown-content-instructor">
-							{#if selectedLectureNumbers !== undefined && filenames !== undefined && lectures !== undefined} 
-								<div class="select-options"> 
-									{#each instructors as instructor}
-										
-										<label>
-											<input type="checkbox" value={instructor}
-												bind:group={selectedInstructors}
-												on:change="{() => instructorClick()}">
-												{instructor}
-										</label>
-									{/each}
-								</div>
-							{/if}
-						</div>
+			<div>
+				<div id="sidebar" style="width: 450px;">
+					<div id="len-pixel" class="view-panel" style="height:auto">
+						<div class="view-title">Pixel ID vs Len[Pixel]</div>
+						{#if pixelID !== undefined}
+							<Lenpixel lectures = {lectures} colorScale = {colorScale} 
+							lenPixel = {lenPixel} pixelID = {pixelID} selectedLectureNumbers = {selectedLectureNumbers}
+							bind:lines={lenLines} bind:currentIndex={currentIndex} bind:hovered={hovered}/>
+						{/if}
 					</div>
 				</div>
-				<div id="instructor-activity">
-					<p id="instructor-activity-word">LECTURING</p>
+				<div id="middle" style="width: 450px">
+					<div id="Distance-to-current-point" class="view-panel" style="height:auto">
+						<div class="view-title">Distance to Current Point</div>
+						{#if pixelID !== undefined}
+							<Distance lectures = {lectures} colorScale = {colorScale} 
+							pixelID = {pixelID} distancePixel = {distancePixel} selectedLectureNumbers={selectedLectureNumbers}
+							bind:distLines={distLines} bind:currentIndex={currentIndex} bind:hovered={hovered}/>
+						{/if}
+					</div>
 				</div>
-					<Heatmap 
-					lectures={lectures}
-					bind:selectedSection={selectedSection}
-					bind:selectedLectureNumbers={selectedLectureNumbers}
-					getSelectedData={getSelectedData}
-					heatmapRange={dataRange} />
 			</div>
 
-			
+			<div>
+				<div id="main-section" style="width: 450px;">
+					<div id="COPUS-bars" class="view-panel" style="height:auto">
+						<div class="view-title">COPUS Data</div>
+						{#if lectureActivity !== undefined}
+							<Copusbars colorScale = {colorScale} selectedData={selectedData}
+							lectureActivity = {lectureActivity} questionAnsweringActivity = {questionAnsweringActivity}
+							questionAskingActivity = {questionAskingActivity} otherActivity = {otherActivity} selectedLectureNumbers={selectedLectureNumbers}
+							bind:bars={bars} bind:hovered={hovered} bind:currentIndex={currentIndex} />
+						{/if}
+					</div>
+				</div>
+				<div id="chart-view" class="view-panel">
+					<div class="view-title">Instructor Statistics</div>
+					<div id="view-list">
 
-			<div class="view-underbar">
-				<div id="lecture-select-button">
-					<p id="lecture-select-title">Lectures</p>
+					<PerQuarterBarChart
+						lectures={lectures}
+						selectedData={selectedData} />
+
+					</div>
+			</div>
+
+
+	</div>
+	
+	<div id="video-view" class="view-panel">
+
+		<div class="view-title">Instructor Path Player</div>
+
+		<div class="view-anim">
+			<div id="instructor-select">
+				<p id="instructor-select-title">Instructors
 					<i class="fas fa-angle-down"id="i-dropdown"></i>
-					<div class="dropdown">
-						<div class="dropdown-content">
-							<!--<h4 id="lecture-select-title">Select a Lecture</h4>-->
-							{#if selectedLectureNumbers !== undefined && filenames !== undefined && lectures !== undefined} 
-								<div class="select-options"> 
-									{#each filenames as filename, idx}
-										{#if lectures[idx].copus === false && selectedInstructors.includes(lectures[idx].instructor_name)}
-											<label>
-												<input type="checkbox" value={idx}
-													bind:group={selectedLectureNumbers}
-													on:change="{() => getSelectedData()}">
-													{filename.split("/")[1]}
-											</label>
-										{/if}
-									{/each}
-								</div>
-							{/if}
-						</div>
+				</p>
+				<p id="instructor-select-id">{selectedInstructors}</p>
+				<div class="dropdown">
+					<div class="dropdown-content" id="dropdown-content-instructor">
+						{#if selectedLectureNumbers !== undefined && filenames !== undefined && lectures !== undefined} 
+							<div class="select-options"> 
+								{#each instructors as instructor}
+									
+									<label>
+										<input type="checkbox" value={instructor}
+											bind:group={selectedInstructors}
+											on:change="{() => instructorClick()}">
+											{instructor}
+									</label>
+								{/each}
+							</div>
+						{/if}
 					</div>
 				</div>
-				
 			</div>
-
-			<!--<Timeline {lectures} {selectedLectureNumbers} range={dataRange} />-->
-
-
-		</div>
-		<div id="chart-view" class="view-panel">
-			<div class="view-title">Instructor Statistics</div>
-			<div id="view-list">
-				<!--<p id="stat0">Instructor X spent the most time at location: LOC</p>
-				<p id="stat1">Instructor X spent the most time doing this activity: ACT</p>
-				<p id="stat2">Instructor X traveled this maximum distance away from the original location: DIST</p>
-				<p id="stat3">Continues...</p>-->
-				<h4 id="slice-select-title">Select a Quarter of Room</h4>
-				<select bind:value={selectedSection} on:change="{() => getSelectedData()}">
-					<option value="N/A"></option>
-					<option value="Q1">Q1</option>
-					<option value="Q2">Q2</option>
-					<option value="Q3">Q3</option>
-					<option value="Q4">Q4</option>
-				</select>
-
-				<PerQuarterBarChart
-					lectures={lectures}
-					selectedData={selectedData} />
-
-			</div>
-		</div>
-	<!--
-	<SliceBarCharts
-		lectures={lectures}
-		selectedData={selectedData}
-		selectedSection={selectedSection}
-		selectedLectureNumbers={selectedLectureNumbers} />
-	-->
-	</div>
-
-	<div id="container">
-		<div id="sidebar" style="width: 450px;">
-			<div id="len-pixel" class="view-panel">
-				<div class="view-title">Pixel ID vs Len[Pixel]</div>
-				{#if pixelID !== undefined}
-					<Lenpixel lectures = {lectures} colorScale = {colorScale} 
-					lenPixel = {lenPixel} pixelID = {pixelID} selectedLectureNumbers = {selectedLectureNumbers}
-					bind:lines={lenLines} bind:currentIndex={currentIndex} bind:hovered={hovered}/>
-				{/if}
-			</div>
-		</div>
-		<div id="middle" style="width: 450px">
-			<div id="Distance-to-current-point" class="view-panel">
-				<div class="view-title">Distance to Current Point</div>
-				{#if pixelID !== undefined}
-					<Distance lectures = {lectures} colorScale = {colorScale} 
-					pixelID = {pixelID} distancePixel = {distancePixel} selectedLectureNumbers={selectedLectureNumbers}
-					bind:distLines={distLines} bind:currentIndex={currentIndex} bind:hovered={hovered}/>
-				{/if}
-			</div>
+			<!--<div id="instructor-activity">
+				<p id="instructor-activity-word">LECTURING</p>
+			</div>-->
+			<Heatmap 
+				{lectures}
+				{colorScale}
+				bind:selectedSections = {selectedSections}
+				bind:selectedLectureNumbers = {selectedLectureNumbers}
+				getSelectedData = {getSelectedData}
+				heatmapRange = {dataRange} />
 		</div>
 
-		<div id="main-section" style="width: 450px;">
-			<div id="COPUS-bars" class="view-panel">
-				<div class="view-title">COPUS Data</div>
-				{#if lectureActivity !== undefined}
-					<Copusbars colorScale = {colorScale} selectedData={selectedData}
-					 lectureActivity = {lectureActivity} questionAnsweringActivity = {questionAnsweringActivity}
-					 questionAskingActivity = {questionAskingActivity} otherActivity = {otherActivity} selectedLectureNumbers={selectedLectureNumbers}
-					 bind:bars={bars} bind:hovered={hovered} bind:currentIndex={currentIndex} />
-				{/if}
-			</div>
-		</div>
-		<div id  = "right-side" style="width: 180px;">
-			<div id = "legend-frame" class="view-panel">
-				<div class = "view-title">Legend</div>
-					<svg id = "legend" width="175px" height = "80px">
-						<g id = "legend-lines" transform = "translate(10, 15)">
-							{#if colorScale !== undefined}
-								{#each instructorNumbers as instructor}
-								{console.log("included instructor: ", selectedLectureNumbers.includes(instructor))}
-									<line id="legend-instructor-{instructor}"
-									class = "legend-line" style = "{selectedLectureNumbers.includes(instructor) ? "stroke: " + colorScale(instructor) : "display: none"}"
-									x2 = "20" y1 = {(60 / instructorNumbers.length) * instructor} y2 = {(60 / instructorNumbers.length) * instructor} />
-									<text 
-									class="legend-labels unclicked" 
-									style = "{selectedLectureNumbers.includes(instructor) ? "" : "display: none"}"
-									bind:this={legendLabels[instructor]} 
-									x = "25" y= {(60 / instructorNumbers.length) * instructor + 3}
-										on:click={() => {
-												legendLabels[instructor].classList.toggle("unclicked")
-												currentIndex = instructor;
-												clicked += 1;}}
-									>
-										{instructorNames[instructor]}</text>
+		
+
+		<div class="view-underbar">
+			<div id="lecture-select-button">
+				<p id="lecture-select-title">Lectures</p>
+				<i class="fas fa-angle-down"id="i-dropdown"></i>
+				<div class="dropdown">
+					<div id="lecturedropdowncontent"class="dropdown-content">
+						<!--<h4 id="lecture-select-title">Select a Lecture</h4>-->
+						{#if selectedLectureNumbers !== undefined && filenames !== undefined && lectures !== undefined} 
+							<div class="select-options"> 
+								{#each filenames as filename, idx}
+									{#if lectures.length > 0 && lectures[idx].copus === false && selectedInstructors.includes(lectures[idx].instructor_name)}
+										<label>
+											<input type="checkbox" value={idx}
+												bind:group={selectedLectureNumbers}
+												on:change="{() => getSelectedData()}">
+												{filename.split("/")[1]}
+										</label>
+									{/if}
 								{/each}
-							{/if}
-						</g>
-					</svg>
+							</div>
+						{/if}
+					</div>
+				</div>
 			</div>
-
+			
 		</div>
+
+
 	</div>
+
 </main>
 
 <style>
@@ -537,12 +559,34 @@
 		width:100%;
 		text-align: center;
 		margin:2px;
+		margin-bottom:90px;
 	}
+	#all-content
+	{
+		display:flex;
+		flex-wrap: wrap;
+		justify-content:center;
+	}
+	#surround1
+	{
+		display: flex;
+    	flex-direction: row;
+	}
+	#right-side
+	{
+		position:absolute;
+		display:flex;
+		float:left;
+		left:5px;
+		top:5px;
+		margin:0;
+	}
+
 
 /*
 	VIDEO VIEW MAIN
 */
-	#container {
+	.container {
 		display: flex;
 		width:auto;
 		justify-content:center;
@@ -582,7 +626,7 @@
 	}
 	#video-view
 	{
-		width:710px;
+		width:600px;
 		height:440px;
 	}
 
@@ -627,7 +671,7 @@
 		height:70px;
 		position:absolute;
 		margin:5px;
-		right:20px;
+		right:5px;
 		padding-top:5px;
 		z-index:2;
 	}
@@ -709,8 +753,8 @@
 */
 	#chart-view
 	{
-		width:600px;
-		height:600px;
+		width:420px;
+		height:480px;
 	}
 	.fas2
 	{
@@ -764,6 +808,11 @@
 		display: flex;
 		font-size: 15px;
 		flex-direction: column;
+	}
+
+	#lecturedropdowncontent
+	{
+		top:45px;
 	}
 
 </style>
