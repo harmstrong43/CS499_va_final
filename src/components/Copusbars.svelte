@@ -51,9 +51,6 @@ import { afterUpdate } from "svelte";
 		}, 0);
 	}
 
-    function getBarLength() {
-
-    }
     afterUpdate(() => {
         lectureActivity = selectedData.map(x => x['data'].map(lecturing => lecturing['lecturing']));
         console.log("selected Data: ", selectedData);
