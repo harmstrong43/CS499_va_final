@@ -93,7 +93,7 @@
 
 </script>
 
-<div>
+<div id="tiny-transform">
     <h4 style="margin:0;">Breakdown Per Quarter of Lecture</h4>           
     <svg style="height: 260px; padding: 20px">
         <g id="per-quarter-bar-chart" transform="translate(0,10)">
@@ -142,5 +142,13 @@
     rect {
         transition: y 1.5s, height 1.5s;
     }
+    #tiny-transform
+	{
+        width: min-content;
+        height: min-content;
+        margin-left: auto;
+        transform: scale(1.1);
+        margin-top: 75px;
+	}
 
 </style>

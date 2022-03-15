@@ -276,7 +276,11 @@
 		{/if}
 		
 		{#if this_pid !== undefined}
-			<text class="cancel-button-icon" x=25 y=45>X</text>
+			<!--<text class="cancel-button-icon" x=25 y=45>X</text>-->
+			<foreignObject x="15" y="15" width="50" height="50">
+				<i class="fas fa-stop"></i>
+			</foreignObject>
+			
 			<rect class="cancel-button" on:click="{() => stopButtonClick()}" />
 		{/if}
 
@@ -363,5 +367,11 @@
 	.cancel-button-icon {
 		fill: red;
 		font-size:30px;
+	}
+	.fa-stop
+	{
+		font-size:30px;
+		color: black;
+		z-index:4;
 	}
 </style>

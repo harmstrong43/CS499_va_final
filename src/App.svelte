@@ -367,197 +367,161 @@
 </script>
 
 <main>
+	<div id  = "right-side" style="width: 180px;">
+		<div id = "legend-frame" class="view-panel" style="height:auto;width:200px;">
+			<div class = "view-title">Legend</div>
+				<svg id = "legend" width="175px" height = "80px">
+					<g id = "legend-lines" transform = "translate(10, 15)">
+						{#if colorScale !== undefined}
+							{#each instructorNumbers as instructor}
+							{console.log("included instructor: ", selectedLectureNumbers.includes(instructor))}
+								<line id="legend-instructor-{instructor}"
+								class = "legend-line" style = "{selectedLectureNumbers.includes(instructor) ? "stroke: " + colorScale(instructor) : "display: none"}"
+								x2 = "20" y1 = {(60 / instructorNumbers.length) * instructor} y2 = {(60 / instructorNumbers.length) * instructor} />
+								<text 
+								class="legend-labels unclicked" 
+								style = "{selectedLectureNumbers.includes(instructor) ? "" : "display: none"}"
+								bind:this={legendLabels[instructor]} 
+								x = "25" y= {(60 / instructorNumbers.length) * instructor + 3}
+									on:click={() => {
+											legendLabels[instructor].classList.toggle("unclicked")
+											currentIndex = instructor;
+											clicked += 1;}}
+								>
+									{instructorNames[instructor]}</text>
+							{/each}
+						{/if}
+					</g>
+				</svg>
+		</div>
+
+	</div>
+
 	<h1>Visual Analytics Final Project</h1>
 	<h2>Instructor Movement Data Visualization</h2>
-	
 
-	
+	<div id="all-content">
 
-	<div id="container">
-		<div id="video-view" class="view-panel">
-
-			<div class="view-title">Instructor Path Player</div>
-
-			<div class="view-anim">
-				<div id="instructor-select">
-					<p id="instructor-select-title">Instructors
-						<i class="fas fa-angle-down"id="i-dropdown"></i>
-					</p>
-					<p id="instructor-select-id">{selectedInstructors}</p>
-					<div class="dropdown">
-						<div class="dropdown-content" id="dropdown-content-instructor">
-							{#if selectedLectureNumbers !== undefined && filenames !== undefined && lectures !== undefined} 
-								<div class="select-options"> 
-									{#each instructors as instructor}
-										
-										<label>
-											<input type="checkbox" value={instructor}
-												bind:group={selectedInstructors}
-												on:change="{() => instructorClick()}">
-												{instructor}
-										</label>
-									{/each}
-								</div>
-							{/if}
-						</div>
-					</div>
+		<div>
+			<div id="sidebar" style="width: 450px;">
+				<div id="len-pixel" class="view-panel" style="height:auto">
+					<div class="view-title">Pixel ID vs Len[Pixel]</div>
+					{#if pixelID !== undefined}
+						<Lenpixel lectures = {lectures} colorScale = {colorScale} 
+						lenPixel = {lenPixel} pixelID = {pixelID} selectedLectureNumbers = {selectedLectureNumbers}
+						bind:lines={lenLines} bind:currentIndex={currentIndex} bind:hovered={hovered}/>
+					{/if}
 				</div>
-				<div id="instructor-activity">
-					<p id="instructor-activity-word">LECTURING</p>
-				</div>
-				<Heatmap 
-					{lectures}
-					{colorScale}
-					bind:selectedSections = {selectedSections}
-					bind:selectedLectureNumbers = {selectedLectureNumbers}
-					getSelectedData = {getSelectedData}
-					heatmapRange = {dataRange} />
 			</div>
-
-			
-
-			<div class="view-underbar">
-				<div id="lecture-select-button">
-					<p id="lecture-select-title">Lectures</p>
-					<i class="fas fa-angle-down"id="i-dropdown"></i>
-					<div class="dropdown">
-						<div class="dropdown-content">
-							<!--<h4 id="lecture-select-title">Select a Lecture</h4>-->
-							{#if selectedLectureNumbers !== undefined && filenames !== undefined && lectures !== undefined} 
-								<div class="select-options"> 
-									{#each filenames as filename, idx}
-										{#if lectures.length > 0 && lectures[idx].copus === false && selectedInstructors.includes(lectures[idx].instructor_name)}
-											<label>
-												<input type="checkbox" value={idx}
-													bind:group={selectedLectureNumbers}
-													on:change="{() => getSelectedData()}">
-													{filename.split("/")[1]}
-											</label>
-										{/if}
-									{/each}
-								</div>
-							{/if}
-						</div>
-					</div>
+			<div id="middle" style="width: 450px">
+				<div id="Distance-to-current-point" class="view-panel" style="height:auto">
+					<div class="view-title">Distance to Current Point</div>
+					{#if pixelID !== undefined}
+						<Distance lectures = {lectures} colorScale = {colorScale} 
+						pixelID = {pixelID} distancePixel = {distancePixel} selectedLectureNumbers={selectedLectureNumbers}
+						bind:distLines={distLines} bind:currentIndex={currentIndex} bind:hovered={hovered}/>
+					{/if}
 				</div>
-				
-			</div>
-
-			<!--<Timeline {lectures} {selectedLectureNumbers} range={dataRange} />-->
-
-
-		</div>
-
-		<!--
-
-		<div id="main-section" style="width: 450px;">
-			<div id="Slice-bars" class="view-panel">
-				<div class="view-title">COPUS Data</div>
-				{#if lectureActivity !== undefined}
-					<SliceBarCharts {colorScale} {selectedData} {lectures} {selectedLectureNumbers} {selectedSections}/>
-				{/if}
 			</div>
 		</div>
 
-		-->
-		<div id="chart-view" class="view-panel">
-			<div class="view-title">Instructor Statistics</div>
-			<div id="view-list">
-				<!--<p id="stat0">Instructor X spent the most time at location: LOC</p>
-				<p id="stat1">Instructor X spent the most time doing this activity: ACT</p>
-				<p id="stat2">Instructor X traveled this maximum distance away from the original location: DIST</p>
-				<p id="stat3">Continues...</p>-->
-				
-				<!--
-				<h4 id="slice-select-title">Select a Quarter of Room</h4>
-				<select multiple bind:value={selectedSections} on:change="{() => getSelectedData()}">
-					
-					<option value=0>Q1</option>
-					<option value=1>Q2</option>
-					<option value=2>Q3</option>
-					<option value=3>Q4</option>
-				</select>
-				-->
+		<div>
+			<div id="main-section" style="width: 450px;">
+				<div id="COPUS-bars" class="view-panel" style="height:auto">
+					<div class="view-title">COPUS Data</div>
+					{#if lectureActivity !== undefined}
+						<Copusbars colorScale = {colorScale} selectedData={selectedData}
+						lectureActivity = {lectureActivity} questionAnsweringActivity = {questionAnsweringActivity}
+						questionAskingActivity = {questionAskingActivity} otherActivity = {otherActivity} selectedLectureNumbers={selectedLectureNumbers}
+						bind:bars={bars} bind:hovered={hovered} bind:currentIndex={currentIndex} />
+					{/if}
+				</div>
+			</div>
+			<div id="chart-view" class="view-panel">
+				<div class="view-title">Instructor Statistics</div>
+				<div id="view-list">
 
 				<PerQuarterBarChart
 					lectures={lectures}
 					selectedData={selectedData} />
 
-			</div>
+				</div>
 		</div>
-	<!--
-	<SliceBarCharts
-		lectures={lectures}
-		selectedData={selectedData}
-		selectedSection={selectedSection}
-		selectedLectureNumbers={selectedLectureNumbers} />
-	-->
+
 	</div>
+	
+	<div id="video-view" class="view-panel">
 
-	<div id="container">
-		<div id="sidebar" style="width: 450px;">
-			<div id="len-pixel" class="view-panel">
-				<div class="view-title">Pixel ID vs Len[Pixel]</div>
-				{#if pixelID !== undefined}
-					<Lenpixel lectures = {lectures} colorScale = {colorScale} 
-					lenPixel = {lenPixel} pixelID = {pixelID} selectedLectureNumbers = {selectedLectureNumbers}
-					bind:lines={lenLines} bind:currentIndex={currentIndex} bind:hovered={hovered}/>
-				{/if}
-			</div>
-		</div>
-		<div id="middle" style="width: 450px">
-			<div id="Distance-to-current-point" class="view-panel">
-				<div class="view-title">Distance to Current Point</div>
-				{#if pixelID !== undefined}
-					<Distance lectures = {lectures} colorScale = {colorScale} 
-					pixelID = {pixelID} distancePixel = {distancePixel} selectedLectureNumbers={selectedLectureNumbers}
-					bind:distLines={distLines} bind:currentIndex={currentIndex} bind:hovered={hovered}/>
-				{/if}
-			</div>
-		</div>
+		<div class="view-title">Instructor Path Player</div>
 
-		<div id="main-section" style="width: 450px;">
-			<div id="COPUS-bars" class="view-panel">
-				<div class="view-title">COPUS Data</div>
-				{#if lectureActivity !== undefined}
-					<Copusbars colorScale = {colorScale} selectedData={selectedData}
-					 lectureActivity = {lectureActivity} questionAnsweringActivity = {questionAnsweringActivity}
-					 questionAskingActivity = {questionAskingActivity} otherActivity = {otherActivity} selectedLectureNumbers={selectedLectureNumbers}
-					 bind:bars={bars} bind:hovered={hovered} bind:currentIndex={currentIndex} />
-				{/if}
-			</div>
-		</div>
-
-		<div id  = "right-side" style="width: 180px;">
-			<div id = "legend-frame" class="view-panel">
-				<div class = "view-title">Legend</div>
-					<svg id = "legend" width="175px" height = "80px">
-						<g id = "legend-lines" transform = "translate(10, 15)">
-							{#if colorScale !== undefined}
-								{#each instructorNumbers as instructor}
-								{console.log("included instructor: ", selectedLectureNumbers.includes(instructor))}
-									<line id="legend-instructor-{instructor}"
-									class = "legend-line" style = "{selectedLectureNumbers.includes(instructor) ? "stroke: " + colorScale(instructor) : "display: none"}"
-									x2 = "20" y1 = {(60 / instructorNumbers.length) * instructor} y2 = {(60 / instructorNumbers.length) * instructor} />
-									<text 
-									class="legend-labels unclicked" 
-									style = "{selectedLectureNumbers.includes(instructor) ? "" : "display: none"}"
-									bind:this={legendLabels[instructor]} 
-									x = "25" y= {(60 / instructorNumbers.length) * instructor + 3}
-										on:click={() => {
-												legendLabels[instructor].classList.toggle("unclicked")
-												currentIndex = instructor;
-												clicked += 1;}}
-									>
-										{instructorNames[instructor]}</text>
+		<div class="view-anim">
+			<div id="instructor-select">
+				<p id="instructor-select-title">Instructors
+					<i class="fas fa-angle-down"id="i-dropdown"></i>
+				</p>
+				<p id="instructor-select-id">{selectedInstructors}</p>
+				<div class="dropdown">
+					<div class="dropdown-content" id="dropdown-content-instructor">
+						{#if selectedLectureNumbers !== undefined && filenames !== undefined && lectures !== undefined} 
+							<div class="select-options"> 
+								{#each instructors as instructor}
+									
+									<label>
+										<input type="checkbox" value={instructor}
+											bind:group={selectedInstructors}
+											on:change="{() => instructorClick()}">
+											{instructor}
+									</label>
 								{/each}
-							{/if}
-						</g>
-					</svg>
+							</div>
+						{/if}
+					</div>
+				</div>
 			</div>
-
+			<div id="instructor-activity">
+				<p id="instructor-activity-word">LECTURING</p>
+			</div>
+			<Heatmap 
+				{lectures}
+				{colorScale}
+				bind:selectedSections = {selectedSections}
+				bind:selectedLectureNumbers = {selectedLectureNumbers}
+				getSelectedData = {getSelectedData}
+				heatmapRange = {dataRange} />
 		</div>
+
+		
+
+		<div class="view-underbar">
+			<div id="lecture-select-button">
+				<p id="lecture-select-title">Lectures</p>
+				<i class="fas fa-angle-down"id="i-dropdown"></i>
+				<div class="dropdown">
+					<div class="dropdown-content">
+						<!--<h4 id="lecture-select-title">Select a Lecture</h4>-->
+						{#if selectedLectureNumbers !== undefined && filenames !== undefined && lectures !== undefined} 
+							<div class="select-options"> 
+								{#each filenames as filename, idx}
+									{#if lectures.length > 0 && lectures[idx].copus === false && selectedInstructors.includes(lectures[idx].instructor_name)}
+										<label>
+											<input type="checkbox" value={idx}
+												bind:group={selectedLectureNumbers}
+												on:change="{() => getSelectedData()}">
+												{filename.split("/")[1]}
+										</label>
+									{/if}
+								{/each}
+							</div>
+						{/if}
+					</div>
+				</div>
+			</div>
+			
+		</div>
+
+
 	</div>
+
 </main>
 
 <style>
@@ -595,11 +559,32 @@
 		text-align: center;
 		margin:2px;
 	}
+	#all-content
+	{
+		display:flex;
+		flex-wrap: wrap;
+		justify-content:center;
+	}
+	#surround1
+	{
+		display: flex;
+    	flex-direction: row;
+	}
+	#right-side
+	{
+		position:sticky;
+		display:flex;
+		float:left;
+		left:0;
+		top:0;
+		margin:0;
+	}
+
 
 /*
 	VIDEO VIEW MAIN
 */
-	#container {
+	.container {
 		display: flex;
 		width:auto;
 		justify-content:center;
@@ -766,8 +751,8 @@
 */
 	#chart-view
 	{
-		width:600px;
-		height:600px;
+		width:420px;
+		height:480px;
 	}
 	.fas2
 	{
