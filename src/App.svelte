@@ -402,51 +402,52 @@
 
 	<div id="all-content">
 
-		<div>
-			<div id="sidebar" style="width: 450px;">
-				<div id="len-pixel" class="view-panel" style="height:auto">
-					<div class="view-title">Pixel ID vs Len[Pixel]</div>
-					{#if pixelID !== undefined}
-						<Lenpixel lectures = {lectures} colorScale = {colorScale} 
-						lenPixel = {lenPixel} pixelID = {pixelID} selectedLectureNumbers = {selectedLectureNumbers}
-						bind:lines={lenLines} bind:currentIndex={currentIndex} bind:hovered={hovered}/>
-					{/if}
+			<div>
+				<div id="sidebar" style="width: 450px;">
+					<div id="len-pixel" class="view-panel" style="height:auto">
+						<div class="view-title">Pixel ID vs Len[Pixel]</div>
+						{#if pixelID !== undefined}
+							<Lenpixel lectures = {lectures} colorScale = {colorScale} 
+							lenPixel = {lenPixel} pixelID = {pixelID} selectedLectureNumbers = {selectedLectureNumbers}
+							bind:lines={lenLines} bind:currentIndex={currentIndex} bind:hovered={hovered}/>
+						{/if}
+					</div>
+				</div>
+				<div id="middle" style="width: 450px">
+					<div id="Distance-to-current-point" class="view-panel" style="height:auto">
+						<div class="view-title">Distance to Current Point</div>
+						{#if pixelID !== undefined}
+							<Distance lectures = {lectures} colorScale = {colorScale} 
+							pixelID = {pixelID} distancePixel = {distancePixel} selectedLectureNumbers={selectedLectureNumbers}
+							bind:distLines={distLines} bind:currentIndex={currentIndex} bind:hovered={hovered}/>
+						{/if}
+					</div>
 				</div>
 			</div>
-			<div id="middle" style="width: 450px">
-				<div id="Distance-to-current-point" class="view-panel" style="height:auto">
-					<div class="view-title">Distance to Current Point</div>
-					{#if pixelID !== undefined}
-						<Distance lectures = {lectures} colorScale = {colorScale} 
-						pixelID = {pixelID} distancePixel = {distancePixel} selectedLectureNumbers={selectedLectureNumbers}
-						bind:distLines={distLines} bind:currentIndex={currentIndex} bind:hovered={hovered}/>
-					{/if}
+
+			<div>
+				<div id="main-section" style="width: 450px;">
+					<div id="COPUS-bars" class="view-panel" style="height:auto">
+						<div class="view-title">COPUS Data</div>
+						{#if lectureActivity !== undefined}
+							<Copusbars colorScale = {colorScale} selectedData={selectedData}
+							lectureActivity = {lectureActivity} questionAnsweringActivity = {questionAnsweringActivity}
+							questionAskingActivity = {questionAskingActivity} otherActivity = {otherActivity} selectedLectureNumbers={selectedLectureNumbers}
+							bind:bars={bars} bind:hovered={hovered} bind:currentIndex={currentIndex} />
+						{/if}
+					</div>
 				</div>
+				<div id="chart-view" class="view-panel">
+					<div class="view-title">Instructor Statistics</div>
+					<div id="view-list">
+
+					<PerQuarterBarChart
+						lectures={lectures}
+						selectedData={selectedData} />
+
+					</div>
 			</div>
-		</div>
 
-		<div>
-			<div id="main-section" style="width: 450px;">
-				<div id="COPUS-bars" class="view-panel" style="height:auto">
-					<div class="view-title">COPUS Data</div>
-					{#if lectureActivity !== undefined}
-						<Copusbars colorScale = {colorScale} selectedData={selectedData}
-						lectureActivity = {lectureActivity} questionAnsweringActivity = {questionAnsweringActivity}
-						questionAskingActivity = {questionAskingActivity} otherActivity = {otherActivity} selectedLectureNumbers={selectedLectureNumbers}
-						bind:bars={bars} bind:hovered={hovered} bind:currentIndex={currentIndex} />
-					{/if}
-				</div>
-			</div>
-			<div id="chart-view" class="view-panel">
-				<div class="view-title">Instructor Statistics</div>
-				<div id="view-list">
-
-				<PerQuarterBarChart
-					lectures={lectures}
-					selectedData={selectedData} />
-
-				</div>
-		</div>
 
 	</div>
 	
@@ -478,9 +479,9 @@
 					</div>
 				</div>
 			</div>
-			<div id="instructor-activity">
+			<!--<div id="instructor-activity">
 				<p id="instructor-activity-word">LECTURING</p>
-			</div>
+			</div>-->
 			<Heatmap 
 				{lectures}
 				{colorScale}
@@ -497,7 +498,7 @@
 				<p id="lecture-select-title">Lectures</p>
 				<i class="fas fa-angle-down"id="i-dropdown"></i>
 				<div class="dropdown">
-					<div class="dropdown-content">
+					<div id="lecturedropdowncontent"class="dropdown-content">
 						<!--<h4 id="lecture-select-title">Select a Lecture</h4>-->
 						{#if selectedLectureNumbers !== undefined && filenames !== undefined && lectures !== undefined} 
 							<div class="select-options"> 
@@ -558,6 +559,7 @@
 		width:100%;
 		text-align: center;
 		margin:2px;
+		margin-bottom:90px;
 	}
 	#all-content
 	{
@@ -572,11 +574,11 @@
 	}
 	#right-side
 	{
-		position:sticky;
+		position:absolute;
 		display:flex;
 		float:left;
-		left:0;
-		top:0;
+		left:5px;
+		top:5px;
 		margin:0;
 	}
 
@@ -624,7 +626,7 @@
 	}
 	#video-view
 	{
-		width:710px;
+		width:600px;
 		height:440px;
 	}
 
@@ -669,7 +671,7 @@
 		height:70px;
 		position:absolute;
 		margin:5px;
-		right:20px;
+		right:5px;
 		padding-top:5px;
 		z-index:2;
 	}
@@ -806,6 +808,11 @@
 		display: flex;
 		font-size: 15px;
 		flex-direction: column;
+	}
+
+	#lecturedropdowncontent
+	{
+		top:45px;
 	}
 
 </style>
