@@ -3,7 +3,7 @@
 -->
 
 <svelte:head>
-	<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.7/css/all.css">
 	<script src="https://d3js.org/d3.v4.min.js"></script>
 </svelte:head>
 <script>
@@ -186,7 +186,7 @@
 			}
 			else {
 				//if at least one is clicked
-				console.log("Legend: ", legendLabels);
+				//console.log("Legend: ", legendLabels);
 				if(legendLabels.filter(x => x.classList.contains("unclicked") === false).length > 0) {
 					legendLabels.filter(x => x.classList.contains("unclicked")).forEach(y => {
 					//make ones that aren't clicked lighter
@@ -256,7 +256,7 @@
 
 		//Declare pixelID, lenPixel, and distancePixel (for readability)
 		pixelID = lectures.filter(lecture => lecture.copus === false).map(movement => movement['data'].map(rows => rows['PID']));
-		console.log("PixelID: ", pixelID);
+		//console.log("PixelID: ", pixelID);
 		lenPixel = lectures.filter(lecture => lecture.copus === false).map(movement => movement['data'].map(rows => rows['Len [pixel]']));
 		distancePixel = lectures.filter(lecture => lecture.copus === false).map(movement => movement['data'].map(rows => rows['D2P [pixel]']));
 
@@ -268,8 +268,8 @@
 		questionAnsweringActivity = lectures.filter(lecture => lecture.copus === false).map(x => x['data'].map(answers => answers['answering_questions']));
 		otherActivity = lectures.filter(lecture => lecture.copus === false).map(x => x['data'].map(answers => answers['other']));
 		instructors = Array.from(instructors)
-		console.log("Lectures: ", lectures)
-		console.log("Instructors: ", instructors);
+		//console.log("Lectures: ", lectures)
+		//console.log("Instructors: ", instructors);
 
 		
 
@@ -320,7 +320,7 @@
 
 	//When data is filtered (i.e. quadrant, lecture, or instructor checked or unchecked)
 	function getSelectedData(){
-		console.log("Selected lecture:", selectedLectureNumbers, "Selected sections:", selectedSections)
+		//console.log("Selected lecture:", selectedLectureNumbers, "Selected sections:", selectedSections)
 		let starting_point = setStartingPoint()
 
 
@@ -374,7 +374,7 @@
 					<g id = "legend-lines" transform = "translate(10, 15)">
 						{#if colorScale !== undefined}
 							{#each instructorNumbers as instructor}
-							{console.log("included instructor: ", selectedLectureNumbers.includes(instructor))}
+							<!--{console.log("included instructor: ", selectedLectureNumbers.includes(instructor))}-->
 								<line id="legend-instructor-{instructor}"
 								class = "legend-line" style = "{selectedLectureNumbers.includes(instructor) ? "stroke: " + colorScale(instructor) : "display: none"}"
 								x2 = "20" y1 = {(60 / instructorNumbers.length) * instructor} y2 = {(60 / instructorNumbers.length) * instructor} />

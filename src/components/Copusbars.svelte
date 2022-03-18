@@ -53,8 +53,8 @@ import { afterUpdate } from "svelte";
 
     afterUpdate(() => {
         lectureActivity = selectedData.map(x => x['data'].map(lecturing => lecturing['lecturing']));
-        console.log("selected Data: ", selectedData);
-        console.log("Lecture Activity: ", lectureActivity);
+        //console.log("selected Data: ", selectedData);
+        //console.log("Lecture Activity: ", lectureActivity);
 		questionAskingActivity = selectedData.map(x => x['data'].map(questions => questions['asking_questions']));
 		questionAnsweringActivity = selectedData.map(x => x['data'].map(answers => answers['answering_questions']));
 		otherActivity = selectedData.map(x => x['data'].map(answers => answers['other']));
@@ -66,7 +66,7 @@ import { afterUpdate } from "svelte";
         questionAnsweringActivityArr.push(sum(questionAnsweringActivityArr) / selectedData.length);
         otherActivityArr =  otherActivity.map(x => x.length === 0 ? 0 : sum(x) / x.length);		
         otherActivityArr.push(sum(otherActivityArr) / selectedData.length);
-        console.log("Activity: ", lectureActivityArr);
+        //console.log("Activity: ", lectureActivityArr);
     })
 
     percentTimeScale = scaleLinear()

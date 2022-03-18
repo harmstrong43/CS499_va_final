@@ -142,12 +142,9 @@
     rect {
         transition: y 1.5s, height 1.5s;
     }
+
     #tiny-transform
 	{
-        width: min-content;
-        height: min-content;
-        margin-left: auto;
-        transform: scale(1.1);
         margin-top: 75px;
 	}
 
